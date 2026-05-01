@@ -1,6 +1,7 @@
 from app.extensions import db
 from app.models.item import Item
 from app.schemas.item_schema import ItemSchema
+from app.services.embedding_service import EmbeddingService
 
 
 class ItemService:
@@ -23,7 +24,12 @@ class ItemService:
 
     @staticmethod
     def create_item(user_id, data):
-        item = Item(user_id=user_id, **data)
+        item = Item(
+            user_id=user_id,
+            embedding=EmbeddingService.generate_item_embedding(data),
+            matching_embedding=EmbeddingService.generate_item_matching_embedding(data),
+            **data,
+        )
 
         db.session.add(item)
         db.session.commit()
@@ -41,6 +47,12 @@ class ItemService:
 
         for field, value in data.items():
             setattr(item, field, value)
+
+        item_data = ItemSchema().dump(item)
+        item.embedding = EmbeddingService.generate_item_embedding(item_data)
+        item.matching_embedding = EmbeddingService.generate_item_matching_embedding(
+            item_data
+        )
 
         db.session.commit()
         return ItemSchema().dump(item), None

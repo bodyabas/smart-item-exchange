@@ -9,13 +9,14 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/smart_item_exchange
       JWT_SECRET_KEY: replace-this-secret
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       FLASK_APP: manage.py
     depends_on:
       db:
         condition: service_healthy
 
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_DB: smart_item_exchange
       POSTGRES_USER: postgres

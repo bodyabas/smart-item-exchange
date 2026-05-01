@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+from pgvector.sqlalchemy import Vector
+
 from app.extensions import db
 
 
@@ -24,6 +26,8 @@ class Item(db.Model):
         default=STATUS_AVAILABLE,
         index=True,
     )
+    embedding = db.Column(Vector(1536), nullable=True)
+    matching_embedding = db.Column(Vector(1536), nullable=True)
     created_at = db.Column(
         db.DateTime(timezone=True),
         nullable=False,
