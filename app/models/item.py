@@ -21,3 +21,13 @@ class Item(db.Model):
     )
 
     user = db.relationship("User", back_populates="items")
+    offered_exchange_requests = db.relationship(
+        "ExchangeRequest",
+        foreign_keys="ExchangeRequest.offered_item_id",
+        back_populates="offered_item",
+    )
+    requested_exchange_requests = db.relationship(
+        "ExchangeRequest",
+        foreign_keys="ExchangeRequest.requested_item_id",
+        back_populates="requested_item",
+    )

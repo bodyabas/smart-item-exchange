@@ -19,6 +19,16 @@ class User(db.Model):
     )
 
     items = db.relationship("Item", back_populates="user", cascade="all, delete-orphan")
+    sent_exchange_requests = db.relationship(
+        "ExchangeRequest",
+        foreign_keys="ExchangeRequest.sender_id",
+        back_populates="sender",
+    )
+    received_exchange_requests = db.relationship(
+        "ExchangeRequest",
+        foreign_keys="ExchangeRequest.receiver_id",
+        back_populates="receiver",
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
