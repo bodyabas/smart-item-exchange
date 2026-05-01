@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, ValidationError, fields, validate, validates_schema
 
 
 class ItemSchema(Schema):
@@ -24,3 +24,17 @@ class CreateItemSchema(Schema):
         allow_none=True,
         validate=validate.Length(max=255),
     )
+
+
+class UpdateItemSchema(Schema):
+    title = fields.Str(validate=validate.Length(min=2, max=150))
+    description = fields.Str(validate=validate.Length(min=5))
+    category = fields.Str(validate=validate.Length(min=2, max=80))
+    condition = fields.Str(validate=validate.Length(min=2, max=80))
+    city = fields.Str(validate=validate.Length(min=2, max=120))
+    desired_exchange = fields.Str(allow_none=True, validate=validate.Length(max=255))
+
+    @validates_schema
+    def validate_has_fields(self, data, **kwargs):
+        if not data:
+            raise ValidationError("At least one item field is required.")

@@ -1,4 +1,10 @@
 from app.schemas.auth_schema import LoginSchema, RegisterSchema
-from app.schemas.item_schema import CreateItemSchema, ItemSchema
+from app.schemas.item_schema import CreateItemSchema, ItemSchema, UpdateItemSchema
 
-__all__ = ["CreateItemSchema", "ItemSchema", "LoginSchema", "RegisterSchema"]
+__all__ = [
+    "CreateItemSchema",
+    "ItemSchema",
+    "LoginSchema",
+    "RegisterSchema",
+    "UpdateItemSchema",
+]
