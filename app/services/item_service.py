@@ -5,8 +5,12 @@ from app.schemas.item_schema import ItemSchema
 
 class ItemService:
     @staticmethod
-    def list_items():
-        items = Item.query.order_by(Item.created_at.desc()).all()
+    def list_items(status=None):
+        query = Item.query
+        if status:
+            query = query.filter_by(status=status)
+
+        items = query.order_by(Item.created_at.desc()).all()
         return ItemSchema(many=True).dump(items)
 
     @staticmethod

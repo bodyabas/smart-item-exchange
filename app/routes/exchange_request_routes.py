@@ -26,8 +26,52 @@ def create_exchange_request():
         return jsonify({"message": "You can only offer your own items"}), 403
     if error == "own_item":
         return jsonify({"message": "You cannot request your own item"}), 400
-    if error == "duplicate_active":
-        return jsonify({"message": "An active exchange request already exists"}), 400
+    if error == "items_not_available":
+        return (
+            jsonify(
+                {
+                    "message": (
+                        "Both offered and requested items must be available for "
+                        "exchange"
+                    )
+                }
+            ),
+            400,
+        )
+    if error == "duplicate_pending_pair":
+        return (
+            jsonify(
+                {
+                    "message": (
+                        "A pending exchange request already exists for these items"
+                    )
+                }
+            ),
+            400,
+        )
+    if error == "accepted_pair":
+        return (
+            jsonify(
+                {
+                    "message": (
+                        "These items already have an accepted exchange request"
+                    )
+                }
+            ),
+            400,
+        )
+    if error == "accepted_item_involved":
+        return (
+            jsonify(
+                {
+                    "message": (
+                        "One of these items is already involved in an accepted "
+                        "exchange request"
+                    )
+                }
+            ),
+            400,
+        )
 
     return jsonify({"exchange_request": exchange_request}), 201
 
@@ -95,5 +139,17 @@ def _status_response(exchange_request, error, action):
         return jsonify({"message": f"Only the receiver can {action} this request"}), 403
     if error == "not_pending":
         return jsonify({"message": "Only pending exchange requests can be updated"}), 400
+    if error == "items_not_available":
+        return (
+            jsonify(
+                {
+                    "message": (
+                        "Both offered and requested items must still be available "
+                        "to accept this request"
+                    )
+                }
+            ),
+            400,
+        )
 
     return jsonify({"exchange_request": exchange_request}), 200

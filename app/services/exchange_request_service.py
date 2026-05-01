@@ -21,14 +21,40 @@ class ExchangeRequestService:
         if requested_item.user_id == sender_id:
             return None, "own_item"
 
-        duplicate = ExchangeRequest.query.filter(
-            ExchangeRequest.sender_id == sender_id,
+        if (
+            offered_item.status != Item.STATUS_AVAILABLE
+            or requested_item.status != Item.STATUS_AVAILABLE
+        ):
+            return None, "items_not_available"
+
+        pair_request = ExchangeRequest.query.filter(
             ExchangeRequest.offered_item_id == offered_item.id,
             ExchangeRequest.requested_item_id == requested_item.id,
-            ExchangeRequest.status.in_(ExchangeRequest.ACTIVE_STATUSES),
+            ExchangeRequest.status.in_(
+                (
+                    ExchangeRequest.STATUS_PENDING,
+                    ExchangeRequest.STATUS_ACCEPTED,
+                )
+            ),
         ).first()
-        if duplicate:
-            return None, "duplicate_active"
+        if pair_request and pair_request.status == ExchangeRequest.STATUS_PENDING:
+            return None, "duplicate_pending_pair"
+        if pair_request and pair_request.status == ExchangeRequest.STATUS_ACCEPTED:
+            return None, "accepted_pair"
+
+        accepted_item_request = ExchangeRequest.query.filter(
+            ExchangeRequest.status == ExchangeRequest.STATUS_ACCEPTED,
+            or_(
+                ExchangeRequest.offered_item_id.in_(
+                    (offered_item.id, requested_item.id)
+                ),
+                ExchangeRequest.requested_item_id.in_(
+                    (offered_item.id, requested_item.id)
+                ),
+            ),
+        ).first()
+        if accepted_item_request:
+            return None, "accepted_item_involved"
 
         exchange_request = ExchangeRequest(
             sender_id=sender_id,
@@ -111,6 +137,16 @@ class ExchangeRequestService:
 
         if exchange_request.status != ExchangeRequest.STATUS_PENDING:
             return None, "not_pending"
+
+        if status == ExchangeRequest.STATUS_ACCEPTED:
+            if (
+                exchange_request.offered_item.status != Item.STATUS_AVAILABLE
+                or exchange_request.requested_item.status != Item.STATUS_AVAILABLE
+            ):
+                return None, "items_not_available"
+
+            exchange_request.offered_item.status = Item.STATUS_EXCHANGED
+            exchange_request.requested_item.status = Item.STATUS_EXCHANGED
 
         exchange_request.status = status
         db.session.commit()

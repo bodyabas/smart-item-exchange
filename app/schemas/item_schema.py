@@ -10,6 +10,7 @@ class ItemSchema(Schema):
     condition = fields.Str(required=True)
     city = fields.Str(required=True)
     desired_exchange = fields.Str(allow_none=True)
+    status = fields.Str(dump_only=True)
     created_at = fields.DateTime(dump_only=True)
 
 
