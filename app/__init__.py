@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 
 from app.commands import ensure_database_extensions, register_commands
 from app.config import Config
@@ -7,6 +7,8 @@ from app.routes.auth_routes import auth_bp
 from app.routes.exchange_request_routes import exchange_requests_bp
 from app.routes.item_routes import items_bp
 from app.routes.recommendation_routes import recommendations_bp
+from app.routes.upload_routes import uploads_bp
+from app.routes.user_routes import users_bp
 
 
 def create_app(config_class=Config):
@@ -20,6 +22,8 @@ def create_app(config_class=Config):
     app.register_blueprint(items_bp, url_prefix="/items")
     app.register_blueprint(exchange_requests_bp, url_prefix="/exchange-requests")
     app.register_blueprint(recommendations_bp, url_prefix="/recommendations")
+    app.register_blueprint(users_bp, url_prefix="/users")
+    app.register_blueprint(uploads_bp, url_prefix="/uploads")
 
     register_error_handlers(app)
     register_commands(app)
@@ -30,6 +34,10 @@ def create_app(config_class=Config):
     @app.get("/health")
     def health_check():
         return {"status": "ok"}, 200
+
+    @app.get("/uploads/<path:filename>")
+    def uploaded_file(filename):
+        return send_from_directory(app.config.get("UPLOAD_FOLDER", "uploads"), filename)
 
     return app
 

@@ -2,6 +2,7 @@ from flask_jwt_extended import create_access_token
 
 from app.extensions import db
 from app.models.user import User
+from app.schemas.user_schema import UserSchema
 
 
 class AuthService:
@@ -19,7 +20,10 @@ class AuthService:
         db.session.commit()
 
         access_token = create_access_token(identity=str(user.id))
-        return {"user": AuthService.serialize_user(user), "access_token": access_token}, None
+        return {
+            "user": AuthService.serialize_user(user),
+            "access_token": access_token,
+        }, None
 
     @staticmethod
     def authenticate_user(data):
@@ -34,9 +38,4 @@ class AuthService:
 
     @staticmethod
     def serialize_user(user):
-        return {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "created_at": user.created_at.isoformat() if user.created_at else None,
-        }
+        return UserSchema().dump(user)

@@ -1,6 +1,12 @@
 from marshmallow import Schema, ValidationError, fields, validate, validates_schema
 
 
+class ItemImageSchema(Schema):
+    id = fields.Int(dump_only=True)
+    image_url = fields.Str(dump_only=True)
+    created_at = fields.DateTime(dump_only=True)
+
+
 class ItemSchema(Schema):
     id = fields.Int(dump_only=True)
     user_id = fields.Int(dump_only=True)
@@ -11,6 +17,7 @@ class ItemSchema(Schema):
     city = fields.Str(required=True)
     desired_exchange = fields.Str(allow_none=True)
     status = fields.Str(dump_only=True)
+    images = fields.Nested(ItemImageSchema, many=True, dump_only=True)
     created_at = fields.DateTime(dump_only=True)
 
 

@@ -1,16 +1,23 @@
 services:
   api:
     build: .
+    env_file:
+      - .env
     command: >
       sh -c "flask --app manage.py init-db &&
              gunicorn --bind 0.0.0.0:5000 manage:app"
     ports:
       - "5000:5000"
+      - "8000:5000"
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/smart_item_exchange
-      JWT_SECRET_KEY: replace-this-secret
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-replace-this-secret}
+      JWT_ACCESS_TOKEN_EXPIRES_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRES_MINUTES:-60}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      UPLOAD_FOLDER: ${UPLOAD_FOLDER:-uploads}
       FLASK_APP: manage.py
+    volumes:
+      - ./uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy

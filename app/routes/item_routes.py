@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from marshmallow import ValidationError
 
-from app.models.item import Item
 from app.schemas.item_schema import CreateItemSchema, UpdateItemSchema
 from app.services.item_service import ItemService
 
@@ -11,11 +10,20 @@ items_bp = Blueprint("items", __name__)
 
 @items_bp.get("")
 def list_items():
-    status = request.args.get("status")
-    if status and status not in Item.ALLOWED_STATUSES:
-        return jsonify({"message": "Invalid item status"}), 400
+    filters = {
+        "status": request.args.get("status"),
+        "category": request.args.get("category"),
+        "city": request.args.get("city"),
+        "condition": request.args.get("condition"),
+        "min_created_at": request.args.get("min_created_at"),
+        "max_created_at": request.args.get("max_created_at"),
+        "search": request.args.get("search"),
+    }
+    error = ItemService.validate_filters(filters)
+    if error:
+        return jsonify({"message": error}), 400
 
-    return jsonify({"items": ItemService.list_items(status=status)}), 200
+    return jsonify({"items": ItemService.list_items(filters=filters)}), 200
 
 
 @items_bp.get("/<int:item_id>")

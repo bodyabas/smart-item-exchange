@@ -11,6 +11,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     name = db.Column(db.String(120), nullable=False)
+    avatar_url = db.Column(db.String(500), nullable=True)
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(
         db.DateTime(timezone=True),

@@ -14,7 +14,9 @@ Backend for a platform that allows users to exchange items.
 ## Features
 
 - User authentication
+- User profile management
 - CRUD for items
+- Local avatar and item image uploads
 - Exchange request workflow
 - AI item recommendations
 - Protected endpoints
@@ -25,10 +27,14 @@ Backend for a platform that allows users to exchange items.
 docker compose up --build
 ```
 
+The API is exposed on both `http://localhost:5000` and
+`http://localhost:8000` in Docker. Uploaded files are served from
+`/uploads/...`, for example `http://localhost:8000/uploads/items/1/image.jpg`.
+
 If you already have an existing local Docker database from an older version, recreate
 the volume so PostgreSQL gets the new `items.status`, `items.embedding`, and
-`items.matching_embedding` columns, exchange negotiation tables/columns, and
-pgvector extension setup:
+`items.matching_embedding` columns, user profile/auth token columns, item image
+tables, exchange negotiation tables/columns, and pgvector extension setup:
 
 ```bash
 docker compose down -v
@@ -39,9 +45,18 @@ docker compose up --build
 
 - `POST /auth/register`
 - `POST /auth/login`
+- `GET /users/me`
+- `PUT /users/me`
+- `POST /uploads/avatar`
+- `POST /uploads/items/<item_id>`
 - `GET /items`
 - `GET /items?status=available`
 - `GET /items?status=exchanged`
+- `GET /items?category=phones&city=Kyiv`
+- `GET /items?condition=used`
+- `GET /items?min_created_at=2026-05-01T00:00:00Z`
+- `GET /items?max_created_at=2026-05-31T23:59:59Z`
+- `GET /items?search=iphone`
 - `GET /items/<id>`
 - `POST /items`
 - `PUT /items/<id>`
@@ -63,6 +78,85 @@ docker compose up --build
 - `JWT_SECRET_KEY`: secret used to sign JWT access tokens
 - `JWT_ACCESS_TOKEN_EXPIRES_MINUTES`: JWT lifetime in minutes
 - `OPENAI_API_KEY`: optional key for OpenAI embeddings; if missing, the app uses deterministic local fallback embeddings for development
+- `UPLOAD_FOLDER`: local folder used for uploaded images
+
+## Local Uploads
+
+Uploads are stored on local disk so the app can run without external storage.
+The storage logic is isolated in `StorageService`, so R2 or another provider can
+be re-enabled later without changing route code.
+
+Upload endpoints require JWT authentication and multipart form data with a file
+field named `file`.
+
+Allowed image types:
+
+- `jpg`
+- `jpeg`
+- `png`
+- `webp`
+
+Maximum file size is 5MB.
+
+`POST /uploads/avatar` stores files at:
+
+```text
+uploads/avatars/<unique_filename>
+```
+
+and updates the current user's `avatar_url` with a URL like
+`/uploads/avatars/<unique_filename>`.
+
+`POST /uploads/items/<item_id>` stores files at:
+
+```text
+uploads/items/<item_id>/<unique_filename>
+```
+
+Only the item owner can upload item images. Item responses include:
+
+```json
+{
+  "images": [
+    {
+      "id": 1,
+      "image_url": "/uploads/items/1/image.png",
+      "created_at": "..."
+    }
+  ]
+}
+```
+
+## User Profile
+
+`GET /users/me` returns the current JWT user's profile. `PUT /users/me` allows
+updating:
+
+```json
+{
+  "name": "New Name",
+  "avatar_url": "https://example.com/avatar.png"
+}
+```
+
+User responses include `avatar_url`.
+
+Registration passwords require at least 8 characters, 1 letter, and 1 number.
+
+## Item Filters
+
+`GET /items` supports:
+
+- `status`
+- `category`
+- `city`
+- `condition`
+- `min_created_at`
+- `max_created_at`
+- `search`
+
+`search` performs case-insensitive matching across title, description, category,
+and desired exchange.
 
 ## AI Recommendations
 

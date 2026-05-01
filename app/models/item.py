@@ -45,3 +45,9 @@ class Item(db.Model):
         foreign_keys="ExchangeRequest.requested_item_id",
         back_populates="requested_item",
     )
+    images = db.relationship(
+        "ItemImage",
+        back_populates="item",
+        cascade="all, delete-orphan",
+        order_by="ItemImage.created_at",
+    )

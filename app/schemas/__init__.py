@@ -5,7 +5,13 @@ from app.schemas.exchange_request_schema import (
     ExchangeOfferSchema,
     ExchangeRequestSchema,
 )
-from app.schemas.item_schema import CreateItemSchema, ItemSchema, UpdateItemSchema
+from app.schemas.item_schema import (
+    CreateItemSchema,
+    ItemImageSchema,
+    ItemSchema,
+    UpdateItemSchema,
+)
+from app.schemas.user_schema import UpdateUserSchema, UserSchema
 
 __all__ = [
     "CreateItemSchema",
@@ -13,8 +19,11 @@ __all__ = [
     "CounterExchangeRequestSchema",
     "ExchangeOfferSchema",
     "ExchangeRequestSchema",
+    "ItemImageSchema",
     "ItemSchema",
     "LoginSchema",
     "RegisterSchema",
+    "UpdateUserSchema",
     "UpdateItemSchema",
+    "UserSchema",
 ]
