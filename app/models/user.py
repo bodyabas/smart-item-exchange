@@ -29,6 +29,11 @@ class User(db.Model):
         foreign_keys="ExchangeRequest.receiver_id",
         back_populates="receiver",
     )
+    exchange_offers = db.relationship(
+        "ExchangeOffer",
+        foreign_keys="ExchangeOffer.proposed_by_user_id",
+        back_populates="proposed_by",
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

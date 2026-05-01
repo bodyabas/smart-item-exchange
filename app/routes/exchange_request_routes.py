@@ -2,7 +2,10 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from marshmallow import ValidationError
 
-from app.schemas.exchange_request_schema import CreateExchangeRequestSchema
+from app.schemas.exchange_request_schema import (
+    CounterExchangeRequestSchema,
+    CreateExchangeRequestSchema,
+)
 from app.services.exchange_request_service import ExchangeRequestService
 
 exchange_requests_bp = Blueprint("exchange_requests", __name__)
@@ -110,6 +113,37 @@ def accept_exchange_request(exchange_request_id):
     return _status_response(exchange_request, error, "accept")
 
 
+@exchange_requests_bp.post("/<int:exchange_request_id>/counter")
+@jwt_required()
+def counter_exchange_request(exchange_request_id):
+    try:
+        data = CounterExchangeRequestSchema().load(request.get_json() or {})
+    except ValidationError as error:
+        return jsonify({"errors": error.messages}), 400
+
+    exchange_request, error = ExchangeRequestService.counter_exchange_request(
+        int(exchange_request_id),
+        int(get_jwt_identity()),
+        data,
+    )
+    return _status_response(exchange_request, error, "counter")
+
+
+@exchange_requests_bp.get("/<int:exchange_request_id>/offers")
+@jwt_required()
+def list_exchange_request_offers(exchange_request_id):
+    offers, error = ExchangeRequestService.list_offers(
+        int(exchange_request_id),
+        int(get_jwt_identity()),
+    )
+    if error == "not_found":
+        return jsonify({"message": "Exchange request not found"}), 404
+    if error == "forbidden":
+        return jsonify({"message": "You can only view your exchange offers"}), 403
+
+    return jsonify({"offers": offers}), 200
+
+
 @exchange_requests_bp.put("/<int:exchange_request_id>/reject")
 @jwt_required()
 def reject_exchange_request(exchange_request_id):
@@ -136,9 +170,28 @@ def _status_response(exchange_request, error, action):
     if error == "forbidden":
         if action == "cancel":
             return jsonify({"message": "Only the sender can cancel this request"}), 403
-        return jsonify({"message": f"Only the receiver can {action} this request"}), 403
+        return jsonify({"message": "Only request participants can do this"}), 403
     if error == "not_pending":
-        return jsonify({"message": "Only pending exchange requests can be updated"}), 400
+        return (
+            jsonify(
+                {
+                    "message": (
+                        "Only pending or countered exchange requests can be updated"
+                    )
+                }
+            ),
+            400,
+        )
+    if error == "closed":
+        return jsonify({"message": "Closed exchange requests cannot be countered"}), 400
+    if error == "missing_offer":
+        return jsonify({"message": "Exchange request has no offer to accept"}), 400
+    if error == "own_latest_offer":
+        if action == "counter":
+            return jsonify({"message": "You cannot counter your own latest offer"}), 400
+        if action == "reject":
+            return jsonify({"message": "You cannot reject your own latest offer"}), 400
+        return jsonify({"message": "You cannot accept your own latest offer"}), 400
     if error == "items_not_available":
         return (
             jsonify(

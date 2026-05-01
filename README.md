@@ -27,7 +27,8 @@ docker compose up --build
 
 If you already have an existing local Docker database from an older version, recreate
 the volume so PostgreSQL gets the new `items.status`, `items.embedding`, and
-`items.matching_embedding` columns plus pgvector extension setup:
+`items.matching_embedding` columns, exchange negotiation tables/columns, and
+pgvector extension setup:
 
 ```bash
 docker compose down -v
@@ -48,9 +49,11 @@ docker compose up --build
 - `POST /exchange-requests`
 - `GET /exchange-requests`
 - `GET /exchange-requests/<id>`
+- `GET /exchange-requests/<id>/offers`
 - `PUT /exchange-requests/<id>/accept`
 - `PUT /exchange-requests/<id>/reject`
 - `PUT /exchange-requests/<id>/cancel`
+- `POST /exchange-requests/<id>/counter`
 - `GET /recommendations/<item_id>`
 - `GET /recommendations/me`
 
@@ -108,7 +111,8 @@ map, and `freshness_score` favors newer listings.
 - Sender cannot request their own item
 - Receiver is the owner of `requested_item_id`
 - Offered and requested items must have `status = available`
-- Only receiver can accept or reject
+- Sender or receiver can accept only the latest offer proposed by the other user
+- Sender or receiver can reject only the latest offer proposed by the other user
 - Only sender can cancel
 - Accepting a request changes both involved item statuses to `exchanged`
 - Cancelled and rejected requests do not change item status
@@ -116,6 +120,35 @@ map, and `freshness_score` favors newer listings.
 - Accepted requests for the same offered/requested item pair are blocked
 - Items already involved in any accepted exchange request cannot be used in new requests
 - Cancelled and rejected requests do not block new requests
+
+## Counter-Offer Negotiation
+
+Exchange requests support optional cash adjustment fields:
+
+```json
+{
+  "cash_adjustment_amount": 170,
+  "cash_adjustment_direction": "sender_pays",
+  "message": "I would like 170 USD instead of 150"
+}
+```
+
+Allowed `cash_adjustment_direction` values:
+
+- `none`
+- `sender_pays`
+- `receiver_pays`
+
+`cash_adjustment_amount` cannot be negative. If the amount is `0`,
+`cash_adjustment_direction` must be `none`.
+
+`POST /exchange-requests` creates the initial offer history record.
+`POST /exchange-requests/<id>/counter` creates a new offer history record,
+updates the main exchange request with the latest cash/message fields, and sets
+status to `countered`.
+
+`GET /exchange-requests/<id>/offers` returns negotiation history sorted by
+creation time ascending.
 
 ## Item Statuses
 
