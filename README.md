@@ -33,10 +33,12 @@ flask, react, postgresql, pgvector, docker, ai, marketplace
 - User profile management with avatar file upload
 - Item CRUD with local multi-image uploads
 - Fixed item categories with dropdown selection and backend validation
-- Item filters by status, category, city, condition, date, and search text
+- Item filters, sorting, and pagination
 - Exchange requests with accept, reject, cancel, and counter-offer flow
+- Exchange request tabs for All, Incoming, and Outgoing requests
 - User-friendly incoming/outgoing request labels and item flow display
 - Optional cash adjustment and message negotiation
+- Counter-offer forms prefill latest cash terms and prevent unchanged counter-offers
 - Item availability logic with `available` and `exchanged` statuses
 - AI recommendations using OpenAI embeddings and PostgreSQL pgvector
 - Dashboard recommendation carousel with match score, why recommended, and expandable score details
@@ -88,7 +90,11 @@ Create `frontend/.env` from `frontend/.env.example`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5000
+VITE_TURNSTILE_SITE_KEY=
 ```
+
+`VITE_TURNSTILE_SITE_KEY` can stay empty for local development. If it is empty,
+the frontend hides the CAPTCHA widget.
 
 Run the frontend locally:
 
@@ -403,6 +409,17 @@ Allowed `cash_adjustment_direction` values:
 - `sender_pays`
 - `receiver_pays`
 
+The frontend displays these as user-friendly options:
+
+- `None`
+- `I pay`
+- `Other user pays`
+
+Counter-offer forms prefill the latest cash amount and payer direction. The
+message field starts empty for each new counter-offer, and the frontend prevents
+sending an unchanged counter-offer when the cash amount and payer direction did
+not change.
+
 The frontend displays requests as product interactions instead of technical
 database labels:
 
@@ -410,6 +427,7 @@ database labels:
 - `Incoming request`
 - item flow such as `Ball -> iPhone 12`
 - active requests show `Waiting for response` when the other user needs to act
+- tabs for `All`, `Incoming`, and `Outgoing`
 
 ### AI Recommendations
 
@@ -519,10 +537,17 @@ frontend/
   src/
     api/
     components/
+    constants/
     context/
     pages/
     router/
+    utils/
+  .env.example
+  index.html
   package.json
+  package-lock.json
+  postcss.config.js
+  tailwind.config.js
   vite.config.js
 docker-compose.yml
 .env.example
