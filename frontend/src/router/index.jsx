@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute.jsx";
 import { AppLayout } from "../components/AppLayout.jsx";
 import { AuthLayout } from "../components/AuthLayout.jsx";
+import { AdminPage } from "../pages/AdminPage.jsx";
 import { CounterOfferPage } from "../pages/CounterOfferPage.jsx";
 import { CreateItemPage } from "../pages/CreateItemPage.jsx";
 import { DashboardPage } from "../pages/DashboardPage.jsx";
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: "/dashboard", element: <DashboardPage /> },
+          { path: "/admin", element: <AdminPage /> },
           { path: "/items/new", element: <CreateItemPage /> },
           { path: "/exchange-requests", element: <ExchangeRequestsPage /> },
           {

@@ -4,6 +4,7 @@ from flask_cors import CORS
 from app.commands import ensure_database_extensions, register_commands
 from app.config import Config
 from app.extensions import db, jwt
+from app.routes.admin_routes import admin_bp
 from app.routes.auth_routes import auth_bp
 from app.routes.exchange_request_routes import exchange_requests_bp
 from app.routes.item_routes import items_bp
@@ -26,11 +27,12 @@ def create_app(config_class=Config):
             "http://127.0.0.1:5173",
             "http://127.0.0.1:5174",
         ],
-        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],
     )
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(items_bp, url_prefix="/items")
     app.register_blueprint(exchange_requests_bp, url_prefix="/exchange-requests")
     app.register_blueprint(recommendations_bp, url_prefix="/recommendations")

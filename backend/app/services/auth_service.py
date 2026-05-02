@@ -1,3 +1,4 @@
+from flask import current_app
 from flask_jwt_extended import create_access_token
 
 from app.extensions import db
@@ -13,7 +14,12 @@ class AuthService:
         if User.query.filter_by(email=email).first():
             return None, "Email is already registered"
 
-        user = User(name=data["name"].strip(), email=email)
+        role = (
+            User.ROLE_ADMIN
+            if current_app.config.get("ADMIN_EMAIL") == email
+            else User.ROLE_USER
+        )
+        user = User(name=data["name"].strip(), email=email, role=role)
         user.set_password(data["password"])
 
         db.session.add(user)

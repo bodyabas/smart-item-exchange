@@ -9,7 +9,11 @@ import { getErrorMessage } from "../api/client.js";
 export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    captcha_token: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,6 +31,12 @@ export function LoginPage() {
     }
   };
 
+  const startGoogleLogin = () => {
+    setError("Google login coming soon.");
+    // TODO: Replace this placeholder with a real Google OAuth redirect/widget.
+    // window.location.href = `${API_BASE_URL}/auth/google/login`;
+  };
+
   return (
     <form onSubmit={submit} className="space-y-4 rounded-lg border border-line bg-white p-6 shadow-soft">
       <div>
@@ -42,7 +52,12 @@ export function LoginPage() {
         <label>Password</label>
         <input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required />
       </div>
+      {/* TODO: Integrate real CAPTCHA widget and set captcha_token here. */}
+      <input type="hidden" value={form.captcha_token} readOnly />
       <Button type="submit" className="w-full" disabled={loading}>{loading ? "Logging in..." : "Log in"}</Button>
+      <Button type="button" variant="secondary" className="w-full" onClick={startGoogleLogin}>
+        Continue with Google
+      </Button>
       <p className="text-center text-sm text-muted">
         New here? <Link to="/register" className="font-medium text-brand">Create an account</Link>
       </p>

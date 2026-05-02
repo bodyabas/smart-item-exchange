@@ -6,6 +6,8 @@ class UserSchema(Schema):
     name = fields.Str(dump_only=True)
     email = fields.Email(dump_only=True)
     avatar_url = fields.Str(dump_only=True, allow_none=True)
+    role = fields.Str(dump_only=True)
+    auth_provider = fields.Str(dump_only=True)
     created_at = fields.DateTime(dump_only=True)
 
 

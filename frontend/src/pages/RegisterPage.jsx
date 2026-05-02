@@ -9,7 +9,12 @@ import { getErrorMessage } from "../api/client.js";
 export function RegisterPage() {
   const navigate = useNavigate();
   const { register } = useAuth();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    captcha_token: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -25,6 +30,12 @@ export function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const startGoogleLogin = () => {
+    setError("Google login coming soon.");
+    // TODO: Replace this placeholder with a real Google OAuth redirect/widget.
+    // window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google/login`;
   };
 
   return (
@@ -46,7 +57,12 @@ export function RegisterPage() {
         <label>Password</label>
         <input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required />
       </div>
+      {/* TODO: Integrate real CAPTCHA widget and set captcha_token here. */}
+      <input type="hidden" value={form.captcha_token} readOnly />
       <Button type="submit" className="w-full" disabled={loading}>{loading ? "Creating..." : "Create account"}</Button>
+      <Button type="button" variant="secondary" className="w-full" onClick={startGoogleLogin}>
+        Continue with Google
+      </Button>
       <p className="text-center text-sm text-muted">
         Already registered? <Link to="/login" className="font-medium text-brand">Log in</Link>
       </p>

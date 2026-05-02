@@ -16,6 +16,7 @@ class RegisterSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=2, max=120))
     email = fields.Email(required=True)
     password = fields.Str(required=True, load_only=True)
+    captcha_token = fields.Str(required=False, load_only=True, allow_none=True)
 
     @validates("password")
     def validate_password(self, value):
@@ -25,3 +26,4 @@ class RegisterSchema(Schema):
 class LoginSchema(Schema):
     email = fields.Email(required=True)
     password = fields.Str(required=True, load_only=True)
+    captcha_token = fields.Str(required=False, load_only=True, allow_none=True)

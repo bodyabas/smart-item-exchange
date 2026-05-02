@@ -8,11 +8,26 @@ from app.extensions import db
 class User(db.Model):
     __tablename__ = "users"
 
+    ROLE_USER = "user"
+    ROLE_ADMIN = "admin"
+    ALLOWED_ROLES = (ROLE_USER, ROLE_ADMIN)
+
+    AUTH_PROVIDER_LOCAL = "local"
+    AUTH_PROVIDER_GOOGLE = "google"
+    ALLOWED_AUTH_PROVIDERS = (AUTH_PROVIDER_LOCAL, AUTH_PROVIDER_GOOGLE)
+
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     name = db.Column(db.String(120), nullable=False)
     avatar_url = db.Column(db.String(500), nullable=True)
     password_hash = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default=ROLE_USER, index=True)
+    google_id = db.Column(db.String(255), nullable=True, unique=True, index=True)
+    auth_provider = db.Column(
+        db.String(20),
+        nullable=False,
+        default=AUTH_PROVIDER_LOCAL,
+    )
     created_at = db.Column(
         db.DateTime(timezone=True),
         nullable=False,

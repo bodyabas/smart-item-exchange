@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext.jsx";
@@ -19,7 +20,13 @@ const publicLinks = [
 export function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, loadUser, logout, user } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && !user) {
+      loadUser().catch(() => logout());
+    }
+  }, [isAuthenticated, user]);
 
   const handleLogout = () => {
     logout();
@@ -35,7 +42,12 @@ export function AppLayout() {
             <p className="text-sm text-muted">Trade smarter with matching tools</p>
           </div>
           <nav className="flex flex-wrap items-center gap-2">
-            {(isAuthenticated ? links : publicLinks).map(([label, to]) => {
+            {(isAuthenticated
+              ? user?.role === "admin"
+                ? [...links, ["Admin", "/admin"]]
+                : links
+              : publicLinks
+            ).map(([label, to]) => {
               const isActive = location.pathname === to;
               return (
               <Link
