@@ -1,6 +1,9 @@
-from flask import Blueprint, current_app, jsonify, request
+from urllib.parse import urlencode
+
+from flask import Blueprint, current_app, jsonify, redirect, request
 from marshmallow import ValidationError
 
+from app.extensions import oauth
 from app.schemas.auth_schema import LoginSchema, RegisterSchema
 from app.services.auth_service import AuthService
 from app.services.captcha_service import CaptchaService
@@ -46,12 +49,47 @@ def login():
 
 @auth_bp.get("/google/login")
 def google_login():
-    if not current_app.config.get("GOOGLE_CLIENT_ID"):
-        return jsonify({"message": "Google login coming soon"}), 501
+    google = oauth.create_client("google")
+    if not google:
+        return redirect(_frontend_error_url())
 
-    return jsonify({"message": "Google OAuth is not fully configured yet"}), 501
+    return google.authorize_redirect(
+        redirect_uri=current_app.config.get("GOOGLE_REDIRECT_URI")
+    )
 
 
 @auth_bp.get("/google/callback")
 def google_callback():
-    return jsonify({"message": "Google OAuth callback placeholder"}), 501
+    google = oauth.create_client("google")
+    if not google:
+        return redirect(_frontend_error_url())
+
+    try:
+        token = google.authorize_access_token()
+        userinfo = token.get("userinfo")
+        if not userinfo:
+            userinfo = google.userinfo(token=token)
+
+        profile = {
+            "google_id": userinfo.get("sub"),
+            "email": userinfo.get("email"),
+            "name": userinfo.get("name"),
+            "avatar_url": userinfo.get("picture"),
+        }
+        if not profile["google_id"] or not profile["email"]:
+            return redirect(_frontend_error_url())
+
+        result = AuthService.authenticate_google_user(profile)
+        return redirect(_frontend_success_url(result["access_token"]))
+    except Exception:
+        return redirect(_frontend_error_url())
+
+
+def _frontend_success_url(access_token):
+    frontend_url = current_app.config.get("FRONTEND_URL").rstrip("/")
+    return f"{frontend_url}/oauth-success?{urlencode({'token': access_token})}"
+
+
+def _frontend_error_url():
+    frontend_url = current_app.config.get("FRONTEND_URL").rstrip("/")
+    return f"{frontend_url}/login?{urlencode({'error': 'google_auth_failed'})}"

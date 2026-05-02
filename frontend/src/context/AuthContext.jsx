@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
       isAuthenticated,
       token,
       user,
+      saveToken,
       login,
       register,
       loadUser,

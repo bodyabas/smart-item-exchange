@@ -3,7 +3,7 @@ from flask_cors import CORS
 
 from app.commands import ensure_database_extensions, register_commands
 from app.config import Config
-from app.extensions import db, jwt
+from app.extensions import db, jwt, oauth
 from app.routes.admin_routes import admin_bp
 from app.routes.auth_routes import auth_bp
 from app.routes.exchange_request_routes import exchange_requests_bp
@@ -19,6 +19,8 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     jwt.init_app(app)
+    oauth.init_app(app)
+    register_oauth_clients(app)
     CORS(
         app,
         origins=[
@@ -54,6 +56,21 @@ def create_app(config_class=Config):
         return send_from_directory(app.config.get("UPLOAD_FOLDER", "uploads"), filename)
 
     return app
+
+
+def register_oauth_clients(app):
+    if not app.config.get("GOOGLE_CLIENT_ID"):
+        return
+
+    oauth.register(
+        name="google",
+        client_id=app.config.get("GOOGLE_CLIENT_ID"),
+        client_secret=app.config.get("GOOGLE_CLIENT_SECRET"),
+        server_metadata_url=(
+            "https://accounts.google.com/.well-known/openid-configuration"
+        ),
+        client_kwargs={"scope": "openid email profile"},
+    )
 
 
 def register_error_handlers(app):

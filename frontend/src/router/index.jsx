@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
+import { AdminProtectedRoute } from "./AdminProtectedRoute.jsx";
 import { ProtectedRoute } from "./ProtectedRoute.jsx";
 import { AppLayout } from "../components/AppLayout.jsx";
 import { AuthLayout } from "../components/AuthLayout.jsx";
@@ -11,6 +12,7 @@ import { ExchangeRequestsPage } from "../pages/ExchangeRequestsPage.jsx";
 import { ItemDetailsPage } from "../pages/ItemDetailsPage.jsx";
 import { ItemsPage } from "../pages/ItemsPage.jsx";
 import { LoginPage } from "../pages/LoginPage.jsx";
+import { OAuthSuccessPage } from "../pages/OAuthSuccessPage.jsx";
 import { ProfilePage } from "../pages/ProfilePage.jsx";
 import { RegisterPage } from "../pages/RegisterPage.jsx";
 
@@ -19,6 +21,7 @@ export const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { path: "/", element: <Navigate to="/login" replace /> },
+      { path: "/oauth-success", element: <OAuthSuccessPage /> },
       { path: "/items", element: <ItemsPage /> },
       { path: "/items/:itemId", element: <ItemDetailsPage /> },
       {
@@ -32,7 +35,6 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: "/dashboard", element: <DashboardPage /> },
-          { path: "/admin", element: <AdminPage /> },
           { path: "/items/new", element: <CreateItemPage /> },
           { path: "/exchange-requests", element: <ExchangeRequestsPage /> },
           {
@@ -41,6 +43,10 @@ export const router = createBrowserRouter([
           },
           { path: "/profile", element: <ProfilePage /> },
         ],
+      },
+      {
+        element: <AdminProtectedRoute />,
+        children: [{ path: "/admin", element: <AdminPage /> }],
       },
     ],
   },

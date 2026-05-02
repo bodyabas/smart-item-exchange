@@ -25,7 +25,7 @@ flask, react, postgresql, pgvector, docker, ai, marketplace
 - JWT authentication with register/login
 - Admin panel foundation with user/item/request management
 - Optional CAPTCHA verification for login and registration
-- Google OAuth placeholder endpoints and frontend buttons
+- Google OAuth login with JWT handoff to the React frontend
 - Public item browsing and protected user dashboard
 - User profile management with avatar file upload
 - Item CRUD with local multi-image uploads
@@ -117,11 +117,41 @@ npm run build
 
 Passwords require at least 8 characters, 1 letter, and 1 number.
 
-If `CAPTCHA_ENABLED=true`, login and register requests must include
-`captcha_token`. Local development can keep `CAPTCHA_ENABLED=false`.
+CAPTCHA uses Cloudflare Turnstile. If `CAPTCHA_ENABLED=true`, login and
+register requests must include `captcha_token`. Local development can keep
+`CAPTCHA_ENABLED=false`.
 
-Google OAuth endpoints are placeholders for now. The frontend shows a
-`Continue with Google` button with a coming-soon message.
+Cloudflare Turnstile setup:
+
+1. Create a Turnstile widget in Cloudflare.
+2. Put the secret key in root `.env` as `CAPTCHA_SECRET_KEY`.
+3. Put the site key in `frontend/.env` as `VITE_TURNSTILE_SITE_KEY`.
+4. Set `CAPTCHA_ENABLED=true` when you want backend verification enabled.
+
+If `VITE_TURNSTILE_SITE_KEY` is empty, the frontend hides the CAPTCHA widget so
+local login/register forms still work.
+
+The register form also includes a confirm password field, and both login and
+register forms have show/hide password controls.
+
+Google OAuth flow:
+
+1. The frontend redirects to `GET /auth/google/login`.
+2. The backend redirects the user to the Google consent screen.
+3. Google calls back to `GET /auth/google/callback`.
+4. The backend creates or links a user, creates a JWT, and redirects to:
+
+```text
+FRONTEND_URL/oauth-success?token=<jwt_token>
+```
+
+5. The frontend saves the token, loads `/users/me`, and redirects to Dashboard.
+
+Required Google redirect URI in Google Cloud Console:
+
+```text
+http://localhost:5000/auth/google/callback
+```
 
 ### Admin
 
@@ -326,14 +356,17 @@ Root `.env.example`:
 - `ADMIN_EMAIL`
 - `CAPTCHA_ENABLED`
 - `CAPTCHA_SECRET_KEY`
+- `VITE_TURNSTILE_SITE_KEY`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_REDIRECT_URI`
+- `FRONTEND_URL`
 - `FLASK_APP`
 
 Frontend `.env.example`:
 
 - `VITE_API_BASE_URL`
+- `VITE_TURNSTILE_SITE_KEY`
 
 `OPENAI_API_KEY` is optional for local testing. If it is missing, the backend
 uses deterministic fallback embeddings.

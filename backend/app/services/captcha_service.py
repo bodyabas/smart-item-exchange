@@ -6,7 +6,7 @@ from flask import current_app
 
 
 class CaptchaService:
-    VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
+    VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 
     @staticmethod
     def verify(token):

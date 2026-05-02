@@ -1,21 +1,30 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { Button } from "../components/Button.jsx";
+import { PasswordField } from "../components/PasswordField.jsx";
 import { ErrorState } from "../components/StateMessage.jsx";
+import { TurnstileWidget } from "../components/TurnstileWidget.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getErrorMessage } from "../api/client.js";
+import { API_BASE_URL, getErrorMessage } from "../api/client.js";
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const [form, setForm] = useState({
     email: "",
     password: "",
     captcha_token: "",
   });
-  const [error, setError] = useState("");
+  const [error, setError] = useState(
+    searchParams.get("error") === "google_auth_failed"
+      ? "Google authentication failed. Please try again."
+      : ""
+  );
   const [loading, setLoading] = useState(false);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
   const submit = async (event) => {
     event.preventDefault();
@@ -26,15 +35,15 @@ export function LoginPage() {
       navigate("/dashboard");
     } catch (err) {
       setError(getErrorMessage(err));
+      setForm((currentForm) => ({ ...currentForm, captcha_token: "" }));
+      setCaptchaResetKey((currentKey) => currentKey + 1);
     } finally {
       setLoading(false);
     }
   };
 
   const startGoogleLogin = () => {
-    setError("Google login coming soon.");
-    // TODO: Replace this placeholder with a real Google OAuth redirect/widget.
-    // window.location.href = `${API_BASE_URL}/auth/google/login`;
+    window.location.href = `${API_BASE_URL}/auth/google/login`;
   };
 
   return (
@@ -48,13 +57,25 @@ export function LoginPage() {
         <label>Email</label>
         <input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required />
       </div>
-      <div>
-        <label>Password</label>
-        <input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required />
-      </div>
-      {/* TODO: Integrate real CAPTCHA widget and set captcha_token here. */}
-      <input type="hidden" value={form.captcha_token} readOnly />
-      <Button type="submit" className="w-full" disabled={loading}>{loading ? "Logging in..." : "Log in"}</Button>
+      <PasswordField
+        label="Password"
+        value={form.password}
+        autoComplete="current-password"
+        onChange={(event) => setForm({ ...form, password: event.target.value })}
+      />
+      <TurnstileWidget
+        key={captchaResetKey}
+        onToken={(token) => setForm((currentForm) => ({ ...currentForm, captcha_token: token }))}
+        onExpire={() => setForm((currentForm) => ({ ...currentForm, captcha_token: "" }))}
+        onError={() => setError("CAPTCHA failed to load. Please try again.")}
+      />
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={loading || (turnstileSiteKey && !form.captcha_token)}
+      >
+        {loading ? "Logging in..." : "Log in"}
+      </Button>
       <Button type="button" variant="secondary" className="w-full" onClick={startGoogleLogin}>
         Continue with Google
       </Button>
