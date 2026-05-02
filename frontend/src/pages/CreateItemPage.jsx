@@ -115,7 +115,11 @@ export function CreateItemPage() {
       <section className="mb-5 rounded-lg border border-line bg-white p-5 shadow-soft">
         <label>Item images</label>
         <p className="mt-1 text-sm text-muted">
-          Add 1 to {MAX_ITEM_IMAGES} images. The first image will be used as the main photo.
+          Upload up to {MAX_ITEM_IMAGES} images. JPG, PNG or WEBP. Max 5MB each.
+          The first image will be used as the main photo.
+        </p>
+        <p className="mt-1 text-sm font-medium text-brand">
+          {imageFiles.length} / {MAX_ITEM_IMAGES} images selected
         </p>
         <div className="mt-3 space-y-4">
           {imagePreviews.length ? (
@@ -156,8 +160,11 @@ export function CreateItemPage() {
             accept="image/jpeg,image/png,image/webp"
             multiple
             onChange={selectImages}
-            disabled={loading}
+            disabled={loading || imageFiles.length >= MAX_ITEM_IMAGES}
           />
+          {imageFiles.length >= MAX_ITEM_IMAGES ? (
+            <p className="text-sm text-muted">Image limit reached.</p>
+          ) : null}
         </div>
       </section>
       <ItemForm value={item} onChange={setItem} onSubmit={submit} loading={loading} />

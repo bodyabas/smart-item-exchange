@@ -3,7 +3,7 @@ from flask_cors import CORS
 
 from app.commands import ensure_database_extensions, register_commands
 from app.config import Config
-from app.extensions import db, jwt, oauth
+from app.extensions import db, jwt, limiter, oauth
 from app.routes.admin_routes import admin_bp
 from app.routes.auth_routes import auth_bp
 from app.routes.exchange_request_routes import exchange_requests_bp
@@ -19,6 +19,7 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     jwt.init_app(app)
+    limiter.init_app(app)
     oauth.init_app(app)
     register_oauth_clients(app)
     CORS(
@@ -89,6 +90,10 @@ def register_error_handlers(app):
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({"message": "Resource not found"}), 404
+
+    @app.errorhandler(429)
+    def rate_limit_exceeded(error):
+        return jsonify({"message": "Too many requests. Please try again later."}), 429
 
     @app.errorhandler(500)
     def internal_error(error):

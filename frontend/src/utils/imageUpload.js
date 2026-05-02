@@ -1,16 +1,20 @@
 export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export const MAX_ITEM_IMAGES = 5;
+export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
 export function validateImageFile(file) {
   if (!file) return "";
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return "Please choose a JPG, PNG, or WebP image.";
+    return "Only JPG, PNG and WEBP images are allowed.";
+  }
+  if (file.size >= MAX_IMAGE_SIZE_BYTES) {
+    return "Image size must be less than 5MB.";
   }
   return "";
 }
 
-export function validateImageFiles(files) {
-  if (files.length > MAX_ITEM_IMAGES) {
+export function validateImageFiles(files, existingCount = 0) {
+  if (existingCount + files.length > MAX_ITEM_IMAGES) {
     return `You can upload up to ${MAX_ITEM_IMAGES} images.`;
   }
   for (const file of files) {

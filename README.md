@@ -26,6 +26,8 @@ flask, react, postgresql, pgvector, docker, ai, marketplace
 - Admin panel foundation with user/item/request management
 - Optional CAPTCHA verification for login and registration
 - Google OAuth login with JWT handoff to the React frontend
+- Login/register rate limiting and expiring JWT access tokens
+- Register password strength indicator and confirm password validation
 - Public item browsing and protected user dashboard
 - User profile management with avatar file upload
 - Item CRUD with local multi-image uploads
@@ -115,7 +117,25 @@ npm run build
 - `GET /auth/google/login`
 - `GET /auth/google/callback`
 
-Passwords require at least 8 characters, 1 letter, and 1 number.
+Passwords require at least 8 characters, 1 letter, and 1 number. The frontend
+shows a live password strength indicator:
+
+- Weak: fewer than 8 characters or missing letters/numbers
+- Medium: at least 8 characters with letters and numbers
+- Strong: at least 10 characters with uppercase, lowercase, number, and special character
+
+Register also validates confirm password before sending the request. Login and
+register password fields include show/hide controls.
+
+Auth rate limits:
+
+- `POST /auth/login`: 5 requests per minute per IP
+- `POST /auth/register`: 3 requests per minute per IP
+
+Rate-limited requests return `429` with a clear JSON message.
+
+JWT access tokens expire according to `JWT_ACCESS_TOKEN_EXPIRES_MINUTES`, which
+defaults to `60`. Expired JWTs return `401`.
 
 CAPTCHA uses Cloudflare Turnstile. If `CAPTCHA_ENABLED=true`, login and
 register requests must include `captcha_token`. Local development can keep
@@ -221,8 +241,11 @@ GET /items?category=phones&city=Kyiv
 GET /items?search=iphone
 ```
 
-The frontend requires 1 to 5 images when creating an item. It creates the item
-with `POST /items`, then uploads each image to:
+The frontend requires 1 to 5 images when creating an item. The backend also
+enforces a maximum of 5 images per item. If an item already has 3 images, only 2
+more uploads are allowed.
+
+The frontend creates the item with `POST /items`, then uploads each image to:
 
 ```text
 POST /uploads/items/<item_id>
@@ -237,7 +260,11 @@ Allowed image types:
 - `png`
 - `webp`
 
-Maximum file size is 5MB.
+Maximum file size is 5MB per image. The UI shows:
+
+```text
+Upload up to 5 images. JPG, PNG or WEBP. Max 5MB each.
+```
 
 Item images are stored locally under:
 

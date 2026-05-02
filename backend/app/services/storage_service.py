@@ -14,6 +14,7 @@ from app.schemas.item_schema import ItemImageSchema
 class StorageService:
     ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
     MAX_FILE_SIZE = 5 * 1024 * 1024
+    MAX_ITEM_IMAGES = 5
 
     @staticmethod
     def upload_avatar(user_id, file):
@@ -44,6 +45,9 @@ class StorageService:
         if item.user_id != user_id:
             return None, "forbidden"
 
+        if len(item.images or []) >= StorageService.MAX_ITEM_IMAGES:
+            return None, "too_many_item_images"
+
         url = StorageService._save_local_file(file, Path("items") / str(item.id))
         image = ItemImage(item_id=item.id, image_url=url)
         db.session.add(image)
@@ -56,6 +60,10 @@ class StorageService:
         files = [file for file in files if file and file.filename]
         if not files:
             return "missing_file"
+
+        existing_count = len(item.images or [])
+        if existing_count + len(files) > StorageService.MAX_ITEM_IMAGES:
+            return "too_many_item_images"
 
         for file in files:
             error = StorageService._validate_file(file)

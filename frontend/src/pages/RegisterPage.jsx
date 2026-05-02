@@ -49,6 +49,10 @@ export function RegisterPage() {
     window.location.href = `${API_BASE_URL}/auth/google/login`;
   };
 
+  const passwordStrength = getPasswordStrength(form.password);
+  const passwordsDoNotMatch =
+    form.confirm_password && form.password !== form.confirm_password;
+
   return (
     <form onSubmit={submit} className="space-y-4 rounded-lg border border-line bg-white p-6 shadow-soft">
       <div>
@@ -70,6 +74,12 @@ export function RegisterPage() {
         autoComplete="new-password"
         onChange={(event) => setForm({ ...form, password: event.target.value })}
       />
+      <PasswordStrengthIndicator strength={passwordStrength} />
+      <p className="text-sm text-muted">
+        Password must be at least 8 characters and include letters and numbers.
+        Strong passwords use at least 10 characters with uppercase, lowercase,
+        number, and special character.
+      </p>
       <PasswordField
         label="Confirm password"
         value={form.confirm_password}
@@ -78,6 +88,9 @@ export function RegisterPage() {
           setForm({ ...form, confirm_password: event.target.value })
         }
       />
+      {passwordsDoNotMatch ? (
+        <p className="text-sm font-medium text-red-600">Passwords do not match</p>
+      ) : null}
       <TurnstileWidget
         key={captchaResetKey}
         onToken={(token) => setForm((currentForm) => ({ ...currentForm, captcha_token: token }))}
@@ -98,5 +111,44 @@ export function RegisterPage() {
         Already registered? <Link to="/login" className="font-medium text-brand">Log in</Link>
       </p>
     </form>
+  );
+}
+
+function getPasswordStrength(password) {
+  const hasMinLength = password.length >= 8;
+  const hasLetter = /[A-Za-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+
+  if (
+    password.length >= 10 &&
+    hasUppercase &&
+    hasLowercase &&
+    hasNumber &&
+    hasSpecial
+  ) {
+    return "Strong";
+  }
+
+  if (hasMinLength && hasLetter && hasNumber) {
+    return "Medium";
+  }
+
+  return "Weak";
+}
+
+function PasswordStrengthIndicator({ strength }) {
+  const styles = {
+    Weak: "bg-red-50 text-red-700 border-red-200",
+    Medium: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    Strong: "bg-green-50 text-green-700 border-green-200",
+  };
+
+  return (
+    <div className={`rounded-md border p-3 text-sm font-medium ${styles[strength]}`}>
+      Password strength: {strength}
+    </div>
   );
 }

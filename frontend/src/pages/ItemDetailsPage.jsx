@@ -10,6 +10,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import {
   buildImageFormData,
   createPreviewUrl,
+  MAX_ITEM_IMAGES,
   validateImageFile,
 } from "../utils/imageUpload.js";
 
@@ -102,6 +103,11 @@ export function ItemDetailsPage() {
 
   const selectItemImage = (event) => {
     const file = event.target.files?.[0];
+    if ((item.images?.length || 0) >= MAX_ITEM_IMAGES) {
+      setError("Maximum 5 images per item");
+      event.target.value = "";
+      return;
+    }
     const validationError = validateImageFile(file);
     if (validationError) {
       setError(validationError);
@@ -187,6 +193,7 @@ export function ItemDetailsPage() {
               imagePreview={imagePreview}
               imageFile={imageFile}
               saving={saving}
+              existingImageCount={images.length}
               onChange={setEditForm}
               onSelectImage={selectItemImage}
               onCancel={cancelEditing}
@@ -416,6 +423,7 @@ function EditItemForm({
   imagePreview,
   imageFile,
   saving,
+  existingImageCount,
   onChange,
   onSelectImage,
   onCancel,
@@ -464,6 +472,12 @@ function EditItemForm({
 
       <section className="rounded-md bg-surface p-4">
         <label>Optional new item image</label>
+        <p className="mt-1 text-sm text-muted">
+          Upload up to {MAX_ITEM_IMAGES} images. JPG, PNG or WEBP. Max 5MB each.
+        </p>
+        <p className="mt-1 text-sm font-medium text-brand">
+          {existingImageCount} / {MAX_ITEM_IMAGES} images uploaded
+        </p>
         <div className="mt-3 grid gap-4 md:grid-cols-[160px_1fr] md:items-center">
           <div className="aspect-[4/3] overflow-hidden rounded-md bg-slate-100">
             {imagePreview ? (
@@ -475,8 +489,16 @@ function EditItemForm({
             )}
           </div>
           <div>
-            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={onSelectImage} />
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={onSelectImage}
+              disabled={saving || existingImageCount >= MAX_ITEM_IMAGES}
+            />
             {imageFile ? <p className="mt-2 text-sm text-muted">Selected: {imageFile.name}</p> : null}
+            {existingImageCount >= MAX_ITEM_IMAGES ? (
+              <p className="mt-2 text-sm text-muted">Image limit reached.</p>
+            ) : null}
           </div>
         </div>
       </section>

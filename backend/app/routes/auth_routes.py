@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 from flask import Blueprint, current_app, jsonify, redirect, request
 from marshmallow import ValidationError
 
-from app.extensions import oauth
+from app.extensions import limiter, oauth
 from app.schemas.auth_schema import LoginSchema, RegisterSchema
 from app.services.auth_service import AuthService
 from app.services.captcha_service import CaptchaService
@@ -12,6 +12,7 @@ auth_bp = Blueprint("auth", __name__)
 
 
 @auth_bp.post("/register")
+@limiter.limit("3 per minute")
 def register():
     try:
         data = RegisterSchema().load(request.get_json() or {})
@@ -30,6 +31,7 @@ def register():
 
 
 @auth_bp.post("/login")
+@limiter.limit("5 per minute")
 def login():
     try:
         data = LoginSchema().load(request.get_json() or {})
