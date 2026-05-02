@@ -6,6 +6,7 @@ import { ItemCard } from "../components/ItemCard.jsx";
 import { PageHeader } from "../components/PageHeader.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
 import { ITEM_CATEGORIES } from "../constants/itemCategories.js";
+import { useToast } from "../context/ToastContext.jsx";
 
 const initialFilters = {
   search: "",
@@ -16,6 +17,7 @@ const initialFilters = {
 const PAGE_SIZE = 6;
 
 export function ItemsPage() {
+  const toast = useToast();
   const [filters, setFilters] = useState(initialFilters);
   const [sort, setSort] = useState("newest");
   const [items, setItems] = useState([]);
@@ -48,7 +50,9 @@ export function ItemsPage() {
         totalItems: response.data.total_items,
       });
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -95,7 +99,9 @@ export function ItemsPage() {
         totalItems: response.data.total_items,
       });
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

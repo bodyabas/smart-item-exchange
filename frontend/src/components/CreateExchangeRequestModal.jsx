@@ -2,8 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 
 import { api, getErrorMessage, resolveMediaUrl } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 import { Button } from "./Button.jsx";
 import { ErrorState, LoadingState } from "./StateMessage.jsx";
+import {
+  getCashDirectionOptions,
+  normalizeCashDirection,
+  validateCashAdjustment,
+} from "../utils/cashAdjustment.js";
 
 const initialOffer = {
   cash_adjustment_amount: 0,
@@ -19,11 +25,11 @@ export function CreateExchangeRequestModal({
   onSuccess,
 }) {
   const { user, loadUser } = useAuth();
+  const toast = useToast();
   const [availableItems, setAvailableItems] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [offer, setOffer] = useState(initialOffer);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -33,7 +39,6 @@ export function CreateExchangeRequestModal({
     async function loadItems() {
       setLoading(true);
       setError("");
-      setSuccess("");
       setOffer(initialOffer);
       try {
         const currentUser = user || (await loadUser());
@@ -52,7 +57,9 @@ export function CreateExchangeRequestModal({
             : "";
         setSelectedItemId(suggestedId);
       } catch (err) {
-        setError(getErrorMessage(err));
+        const message = getErrorMessage(err);
+        setError(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }
@@ -65,16 +72,28 @@ export function CreateExchangeRequestModal({
     () => availableItems.find((item) => String(item.id) === String(selectedItemId)),
     [availableItems, selectedItemId]
   );
+  const currentUserId = user?.id || availableItems[0]?.user_id;
 
   if (!open || !requestedItem) return null;
 
   const submit = async (event) => {
     event.preventDefault();
     setError("");
-    setSuccess("");
 
     if (!selectedItemId) {
-      setError("Select one of your available items to offer.");
+      const message = "Select one of your available items to offer.";
+      setError(message);
+      toast.error(message);
+      return;
+    }
+
+    const cashError = validateCashAdjustment(
+      offer.cash_adjustment_amount,
+      offer.cash_adjustment_direction
+    );
+    if (cashError) {
+      setError(cashError);
+      toast.error(cashError);
       return;
     }
 
@@ -85,17 +104,21 @@ export function CreateExchangeRequestModal({
         offered_item_id: Number(selectedItemId),
         requested_item_id: requestedItem.id,
         cash_adjustment_amount: amount,
-        cash_adjustment_direction:
-          amount === 0 ? "none" : offer.cash_adjustment_direction,
+        cash_adjustment_direction: normalizeCashDirection(
+          amount,
+          offer.cash_adjustment_direction
+        ),
         message: offer.message,
       });
-      setSuccess("Exchange request created.");
+      toast.success("Exchange request created.");
       onSuccess?.();
       setTimeout(() => {
         onClose();
       }, 700);
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -127,11 +150,6 @@ export function CreateExchangeRequestModal({
           </section>
 
           <ErrorState message={error} />
-          {success ? (
-            <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-              {success}
-            </div>
-          ) : null}
 
           {loading ? (
             <LoadingState label="Loading your available items..." />
@@ -217,10 +235,24 @@ export function CreateExchangeRequestModal({
                   setOffer({ ...offer, cash_adjustment_direction: event.target.value })
                 }
               >
-                <option value="none">None</option>
-                <option value="sender_pays">Sender pays</option>
-                <option value="receiver_pays">Receiver pays</option>
+                {getCashDirectionOptions(
+                  currentUserId,
+                  currentUserId,
+                  requestedItem.user_id
+                ).map(
+                  (option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  )
+                )}
               </select>
+              {Number(offer.cash_adjustment_amount || 0) > 0 &&
+              offer.cash_adjustment_direction === "none" ? (
+                <p className="mt-1 text-sm font-medium text-red-600">
+                  Please choose who pays the cash adjustment.
+                </p>
+              ) : null}
             </div>
             <div className="md:col-span-2">
               <label>Message</label>

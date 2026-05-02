@@ -16,11 +16,19 @@ api.interceptors.request.use((config) => {
 });
 
 export function getErrorMessage(error) {
-  return (
+  const message =
     error?.response?.data?.message ||
     Object.values(error?.response?.data?.errors || {})?.flat()?.[0] ||
-    "Something went wrong"
-  );
+    "Something went wrong";
+
+  if (
+    typeof message === "string" &&
+    message.includes("cash_adjustment_direction")
+  ) {
+    return "Please choose who pays the cash adjustment.";
+  }
+
+  return message;
 }
 
 export function resolveMediaUrl(url) {

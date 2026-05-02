@@ -8,6 +8,7 @@ import { PageHeader } from "../components/PageHeader.jsx";
 import { PasswordField } from "../components/PasswordField.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 import {
   buildImageFormData,
   createPreviewUrl,
@@ -16,14 +17,13 @@ import {
 
 export function ProfilePage() {
   const { user, loadUser } = useAuth();
+  const toast = useToast();
   const [form, setForm] = useState({ name: "", avatar_url: "" });
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [availableItems, setAvailableItems] = useState([]);
   const [exchangedItems, setExchangedItems] = useState([]);
   const [error, setError] = useState("");
-  const [saved, setSaved] = useState(false);
-  const [passwordSaved, setPasswordSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ new_password: "" });
   const [passwordSaving, setPasswordSaving] = useState(false);
@@ -64,20 +64,21 @@ export function ProfilePage() {
 
   const submit = async (event) => {
     event.preventDefault();
-    setSaved(false);
-    setPasswordSaved(false);
     setSaving(true);
     setError("");
     try {
       await api.put("/users/me", form);
       if (avatarFile) {
         await api.post("/uploads/avatar", buildImageFormData(avatarFile));
+        toast.success("Avatar uploaded successfully.");
       }
       setAvatarFile(null);
       await loadProfile();
-      setSaved(true);
+      toast.success("Profile saved.");
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -88,6 +89,7 @@ export function ProfilePage() {
     const validationError = validateImageFile(file);
     if (validationError) {
       setError(validationError);
+      toast.error(validationError);
       return;
     }
     setError("");
@@ -98,16 +100,16 @@ export function ProfilePage() {
   const submitPassword = async (event) => {
     event.preventDefault();
     setError("");
-    setSaved(false);
-    setPasswordSaved(false);
     setPasswordSaving(true);
     try {
       await api.post("/auth/set-password", passwordForm);
       setPasswordForm({ new_password: "" });
       await loadProfile();
-      setPasswordSaved(true);
+      toast.success("Password has been set successfully.");
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setPasswordSaving(false);
     }
@@ -127,16 +129,6 @@ export function ProfilePage() {
         }
       />
       <ErrorState message={error} />
-      {saved ? (
-        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-          Profile saved
-        </div>
-      ) : null}
-      {passwordSaved ? (
-        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-          Password has been set successfully
-        </div>
-      ) : null}
 
       <section className="mb-8 grid gap-5 rounded-lg border border-line bg-white p-5 shadow-soft lg:grid-cols-[auto_1fr]">
         <Avatar user={user} name={form.name} avatarUrl={avatarPreview} />

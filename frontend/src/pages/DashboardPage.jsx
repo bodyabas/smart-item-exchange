@@ -8,12 +8,15 @@ import { PageHeader } from "../components/PageHeader.jsx";
 import { RecommendationCard } from "../components/RecommendationCard.jsx";
 import { ErrorState, LoadingState } from "../components/StateMessage.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../context/ToastContext.jsx";
+import { formatCashAdjustment } from "../utils/cashAdjustment.js";
 
 const activeRequestStatuses = ["pending", "countered"];
 const desktopBreakpoint = 1024;
 
 export function DashboardPage() {
   const { user, loadUser } = useAuth();
+  const toast = useToast();
   const [recommendations, setRecommendations] = useState([]);
   const [activeRequests, setActiveRequests] = useState([]);
   const [requestItemsById, setRequestItemsById] = useState({});
@@ -24,7 +27,6 @@ export function DashboardPage() {
     bestMatchScore: null,
   });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(true);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [cardsPerView, setCardsPerView] = useState(2);
@@ -92,7 +94,9 @@ export function DashboardPage() {
           bestMatchScore: loadedRecommendations[0]?.final_score ?? null,
         });
       } catch (err) {
-        setError(getErrorMessage(err));
+        const message = getErrorMessage(err);
+        setError(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }
@@ -127,7 +131,6 @@ export function DashboardPage() {
   if (loading) return <LoadingState label="Loading dashboard..." />;
 
   const openRequestModal = (source, item) => {
-    setSuccess("");
     setModalState({ open: true, sourceItem: source, requestedItem: item });
   };
 
@@ -155,11 +158,6 @@ export function DashboardPage() {
         subtitle="Here are your best exchange opportunities today."
       />
       <ErrorState message={error} />
-      {success ? (
-        <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-          {success}
-        </div>
-      ) : null}
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard label="Active items" value={summary.activeItems} />
@@ -274,7 +272,7 @@ export function DashboardPage() {
         onClose={() =>
           setModalState({ open: false, sourceItem: null, requestedItem: null })
         }
-        onSuccess={() => setSuccess("Exchange request created successfully.")}
+        onSuccess={() => {}}
       />
     </div>
   );
@@ -314,6 +312,7 @@ function RecommendationEmptyState() {
 }
 
 function RequestPreview({ request, currentUserId, offeredItem, requestedItem }) {
+  const currentOffer = request.latest_offer || request;
   const direction =
     request.receiver_id === currentUserId
       ? "Incoming request"
@@ -329,7 +328,7 @@ function RequestPreview({ request, currentUserId, offeredItem, requestedItem }) 
         <div className="min-w-0">
           <h3 className="font-semibold">{direction}</h3>
           <p className="mt-1 truncate text-sm font-medium text-ink">
-            {offeredTitle} → {requestedTitle}
+            {offeredTitle} -&gt; {requestedTitle}
           </p>
         </div>
         <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-brand">
@@ -350,9 +349,12 @@ function RequestPreview({ request, currentUserId, offeredItem, requestedItem }) 
         />
       </div>
 
-      {request.message ? (
-        <p className="mt-2 line-clamp-2 text-sm">{request.message}</p>
+      {currentOffer.message ? (
+        <p className="mt-2 line-clamp-2 text-sm">{currentOffer.message}</p>
       ) : null}
+      <p className="mt-2 text-sm font-medium text-muted">
+        {formatCashAdjustment(currentOffer)}
+      </p>
 
       <Link to="/exchange-requests" className="mt-4 inline-block">
         <Button variant="secondary">View request</Button>

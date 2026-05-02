@@ -40,6 +40,7 @@ flask, react, postgresql, pgvector, docker, ai, marketplace
 - Item availability logic with `available` and `exchanged` statuses
 - AI recommendations using OpenAI embeddings and PostgreSQL pgvector
 - Dashboard recommendation carousel with match score, why recommended, and expandable score details
+- Toast notifications for successful actions, API errors, validation errors, and upload feedback
 - Local upload storage, no external email or cloud storage dependency
 
 ## Tech Stack

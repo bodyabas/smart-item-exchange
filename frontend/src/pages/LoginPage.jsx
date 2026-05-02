@@ -6,12 +6,14 @@ import { PasswordField } from "../components/PasswordField.jsx";
 import { ErrorState } from "../components/StateMessage.jsx";
 import { TurnstileWidget } from "../components/TurnstileWidget.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 import { API_BASE_URL, getErrorMessage } from "../api/client.js";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login } = useAuth();
+  const toast = useToast();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -32,9 +34,12 @@ export function LoginPage() {
     setError("");
     try {
       await login(form);
+      toast.success("Logged in successfully.");
       navigate("/dashboard");
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
       setForm((currentForm) => ({ ...currentForm, captcha_token: "" }));
       setCaptchaResetKey((currentKey) => currentKey + 1);
     } finally {
@@ -67,7 +72,10 @@ export function LoginPage() {
         key={captchaResetKey}
         onToken={(token) => setForm((currentForm) => ({ ...currentForm, captcha_token: token }))}
         onExpire={() => setForm((currentForm) => ({ ...currentForm, captcha_token: "" }))}
-        onError={() => setError("CAPTCHA failed to load. Please try again.")}
+        onError={() => {
+          setError("CAPTCHA failed to load. Please try again.");
+          toast.error("CAPTCHA failed to load. Please try again.");
+        }}
       />
       <Button
         type="submit"

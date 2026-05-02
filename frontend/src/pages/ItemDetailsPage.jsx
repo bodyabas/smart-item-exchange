@@ -8,6 +8,7 @@ import { CreateExchangeRequestModal } from "../components/CreateExchangeRequestM
 import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
 import { ITEM_CATEGORIES } from "../constants/itemCategories.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 import {
   buildImageFormData,
   createPreviewUrl,
@@ -28,10 +29,10 @@ export function ItemDetailsPage() {
   const { itemId } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, user, loadUser } = useAuth();
+  const toast = useToast();
   const [item, setItem] = useState(null);
   const [editForm, setEditForm] = useState(null);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [saving, setSaving] = useState(false);
@@ -70,7 +71,6 @@ export function ItemDetailsPage() {
 
   const startEditing = () => {
     if (item.status !== "available") return;
-    setSuccess("");
     setError("");
     setImageFile(null);
     setImagePreview("");
@@ -93,9 +93,12 @@ export function ItemDetailsPage() {
     setError("");
     try {
       await api.delete(`/items/${item.id}`);
+      toast.success("Item deleted successfully.");
       navigate("/items");
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
       setDeleteConfirmOpen(false);
     } finally {
       setDeleting(false);
@@ -106,17 +109,18 @@ export function ItemDetailsPage() {
     const file = event.target.files?.[0];
     if ((item.images?.length || 0) >= MAX_ITEM_IMAGES) {
       setError("Maximum 5 images per item");
+      toast.error("Maximum 5 images per item");
       event.target.value = "";
       return;
     }
     const validationError = validateImageFile(file);
     if (validationError) {
       setError(validationError);
+      toast.error(validationError);
       event.target.value = "";
       return;
     }
     setError("");
-    setSuccess("");
     setImageFile(file);
     setImagePreview(createPreviewUrl(file));
   };
@@ -125,7 +129,6 @@ export function ItemDetailsPage() {
     event.preventDefault();
     setSaving(true);
     setError("");
-    setSuccess("");
     try {
       await api.put(`/items/${item.id}`, editForm);
 
@@ -141,6 +144,7 @@ export function ItemDetailsPage() {
               uploadError
             )}`
           );
+          toast.error(`Image upload failed: ${getErrorMessage(uploadError)}`);
           await loadItem();
           return;
         }
@@ -151,13 +155,16 @@ export function ItemDetailsPage() {
       setEditForm(null);
       setImageFile(null);
       setImagePreview("");
-      setSuccess(
-        imageFile && refreshedItem?.images?.[0]?.image_url
-          ? "Item updated with image."
-          : "Item updated successfully."
-      );
+      if (imageFile && refreshedItem?.images?.[0]?.image_url) {
+        toast.success("Item updated successfully.");
+        toast.success("Image uploaded successfully.");
+      } else {
+        toast.success("Item updated successfully.");
+      }
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -182,11 +189,6 @@ export function ItemDetailsPage() {
 
         <div className="space-y-4">
           <ErrorState message={error} />
-          {success ? (
-            <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-              {success}
-            </div>
-          ) : null}
 
           {editing ? (
             <EditItemForm
@@ -219,7 +221,7 @@ export function ItemDetailsPage() {
         open={requestModalOpen}
         requestedItem={item}
         onClose={() => setRequestModalOpen(false)}
-        onSuccess={() => setSuccess("Exchange request created successfully.")}
+        onSuccess={() => {}}
       />
       <ConfirmModal
         open={deleteConfirmOpen}

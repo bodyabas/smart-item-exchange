@@ -5,6 +5,7 @@ import { api, getErrorMessage } from "../api/client.js";
 import { ItemForm } from "../components/ItemForm.jsx";
 import { PageHeader } from "../components/PageHeader.jsx";
 import { ErrorState } from "../components/StateMessage.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 import {
   buildImageFormData,
   createPreviewUrl,
@@ -23,6 +24,7 @@ const initialItem = {
 
 export function CreateItemPage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [item, setItem] = useState(initialItem);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -34,6 +36,7 @@ export function CreateItemPage() {
     const validationError = validateImageFiles(newFiles);
     if (validationError) {
       setError(validationError);
+      toast.error(validationError);
       event.target.value = "";
       return;
     }
@@ -56,7 +59,9 @@ export function CreateItemPage() {
     }
 
     if (maxExceeded) {
-      setError(`You can upload up to ${MAX_ITEM_IMAGES} images.`);
+      const message = `You can upload up to ${MAX_ITEM_IMAGES} images.`;
+      setError(message);
+      toast.error(message);
       setImageFiles(nextFiles);
       setImagePreviews(nextFiles.map((file) => createPreviewUrl(file)));
       event.target.value = "";
@@ -66,6 +71,7 @@ export function CreateItemPage() {
     const nextValidationError = validateImageFiles(nextFiles);
     if (nextValidationError) {
       setError(nextValidationError);
+      toast.error(nextValidationError);
       event.target.value = "";
       return;
     }
@@ -87,7 +93,9 @@ export function CreateItemPage() {
     setError("");
 
     if (!imageFiles.length) {
-      setError("Please select at least one item image.");
+      const message = "Please select at least one item image.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
@@ -98,11 +106,15 @@ export function CreateItemPage() {
       for (const file of imageFiles) {
         await api.post(`/uploads/items/${createdItemId}`, buildImageFormData(file));
       }
+      toast.success("Item created successfully.");
+      toast.success("Images uploaded successfully.");
       setImageFiles([]);
       setImagePreviews([]);
       navigate(`/items/${createdItemId}`);
     } catch (err) {
-      setError(`Item was not fully created: ${getErrorMessage(err)}`);
+      const message = `Item was not fully created: ${getErrorMessage(err)}`;
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

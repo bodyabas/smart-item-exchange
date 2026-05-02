@@ -6,16 +6,25 @@ import { Button } from "../components/Button.jsx";
 import { PageHeader } from "../components/PageHeader.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../context/ToastContext.jsx";
+import { formatCashAdjustment } from "../utils/cashAdjustment.js";
 
 const finalStatusLabel = {
   accepted: "Completed",
   rejected: "Rejected",
   cancelled: "Cancelled",
 };
+const requestTabs = [
+  { id: "all", label: "All" },
+  { id: "incoming", label: "Incoming" },
+  { id: "outgoing", label: "Outgoing" },
+];
 
 export function ExchangeRequestsPage() {
   const { user, loadUser } = useAuth();
+  const toast = useToast();
   const [requests, setRequests] = useState([]);
+  const [activeTab, setActiveTab] = useState("all");
   const [itemsById, setItemsById] = useState({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -31,7 +40,9 @@ export function ExchangeRequestsPage() {
       setRequests(loadedRequests);
       await loadRequestItems(loadedRequests);
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -70,18 +81,26 @@ export function ExchangeRequestsPage() {
     setError("");
     try {
       await api.put(`/exchange-requests/${requestId}/${name}`);
+      toast.success(exchangeActionSuccessMessage(name));
       await load();
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setActionLoading(null);
     }
   };
 
-  const activeRequests = requests.filter(
+  const visibleRequests = requests.filter((request) => {
+    if (activeTab === "incoming") return request.receiver_id === user?.id;
+    if (activeTab === "outgoing") return request.sender_id === user?.id;
+    return true;
+  });
+  const activeRequests = visibleRequests.filter(
     (request) => request.status === "pending" || request.status === "countered"
   );
-  const historyRequests = requests.filter(
+  const historyRequests = visibleRequests.filter(
     (request) =>
       request.status === "accepted" ||
       request.status === "rejected" ||
@@ -99,9 +118,10 @@ export function ExchangeRequestsPage() {
         <LoadingState label="Loading exchange requests..." />
       ) : requests.length ? (
         <div className="space-y-8">
+          <RequestTabs activeTab={activeTab} onChange={setActiveTab} />
           <RequestSection
             title="Active requests"
-            emptyMessage="No active requests right now."
+            emptyMessage={emptyMessageForTab(activeTab, "active")}
             requests={activeRequests}
             currentUserId={user?.id}
             itemsById={itemsById}
@@ -110,7 +130,7 @@ export function ExchangeRequestsPage() {
           />
           <RequestSection
             title="History"
-            emptyMessage="Accepted, rejected and cancelled requests will appear here."
+            emptyMessage={emptyMessageForTab(activeTab, "history")}
             requests={historyRequests}
             currentUserId={user?.id}
             itemsById={itemsById}
@@ -123,6 +143,43 @@ export function ExchangeRequestsPage() {
       )}
     </div>
   );
+}
+
+function RequestTabs({ activeTab, onChange }) {
+  return (
+    <div className="inline-flex rounded-lg border border-line bg-white p-1 shadow-soft">
+      {requestTabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          onClick={() => onChange(tab.id)}
+          className={`rounded-md px-4 py-2 text-sm font-semibold transition ${
+            activeTab === tab.id
+              ? "bg-brand text-white"
+              : "text-muted hover:bg-surface hover:text-ink"
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function emptyMessageForTab(tab, section) {
+  if (tab === "incoming") {
+    return section === "active"
+      ? "No incoming requests"
+      : "No incoming request history yet.";
+  }
+  if (tab === "outgoing") {
+    return section === "active"
+      ? "No outgoing requests"
+      : "No outgoing request history yet.";
+  }
+  return section === "active"
+    ? "No active requests right now."
+    : "Accepted, rejected and cancelled requests will appear here.";
 }
 
 function RequestSection({
@@ -152,9 +209,23 @@ function RequestSection({
           ))}
         </div>
       ) : (
-        <EmptyState message={emptyMessage} />
+        <RequestEmptyState message={emptyMessage} />
       )}
     </section>
+  );
+}
+
+function RequestEmptyState({ message }) {
+  return (
+    <div className="rounded-lg border border-line bg-white p-6 text-center shadow-soft">
+      <h3 className="font-semibold">{message}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+        Browse available items to start a new exchange conversation.
+      </p>
+      <Link to="/items" className="mt-4 inline-block">
+        <Button variant="secondary">Browse items</Button>
+      </Link>
+    </div>
   );
 }
 
@@ -175,6 +246,7 @@ function ExchangeRequestCard({
   const finalLabel = finalStatusLabel[request.status];
   const loadingAction = (name) => actionLoading === `${request.id}-${name}`;
   const anyActionLoading = Boolean(actionLoading);
+  const currentOffer = request.latest_offer || request;
   const direction =
     request.sender_id === currentUserId ? "Outgoing request" : "Incoming request";
   const offeredTitle = offeredItem?.title || `Item #${request.offered_item_id}`;
@@ -186,7 +258,7 @@ function ExchangeRequestCard({
         <div className="min-w-0">
           <p className="text-sm font-semibold text-muted">{direction}</p>
           <h3 className="mt-1 truncate text-lg font-semibold">
-            {offeredTitle} → {requestedTitle}
+            {offeredTitle} -&gt; {requestedTitle}
           </h3>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -212,11 +284,8 @@ function ExchangeRequestCard({
       </div>
 
       <div className="mt-4 rounded-md bg-surface p-3 text-sm">
-        <p>
-          Cash: <span className="font-semibold">{request.cash_adjustment_amount || 0}</span>{" "}
-          - {request.cash_adjustment_direction || "none"}
-        </p>
-        {request.message ? <p className="mt-1 text-muted">{request.message}</p> : null}
+        <p className="font-medium">{formatCashAdjustment(currentOffer)}</p>
+        {currentOffer.message ? <p className="mt-1 text-muted">{currentOffer.message}</p> : null}
       </div>
 
       {active ? (
@@ -295,4 +364,13 @@ function ItemPreview({ label, item, fallbackId }) {
       </div>
     </div>
   );
+}
+
+function exchangeActionSuccessMessage(action) {
+  const messages = {
+    accept: "Exchange request accepted.",
+    reject: "Exchange request rejected.",
+    cancel: "Exchange request cancelled.",
+  };
+  return messages[action] || "Exchange request updated.";
 }
