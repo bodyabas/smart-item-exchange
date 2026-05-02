@@ -41,8 +41,8 @@ export function ProfilePage() {
       setAvatarPreview(resolveMediaUrl(currentUser.avatar_url));
 
       const [availableResponse, exchangedResponse] = await Promise.all([
-        api.get("/items", { params: { status: "available" } }),
-        api.get("/items", { params: { status: "exchanged" } }),
+        api.get("/items", { params: { status: "available", limit: 100 } }),
+        api.get("/items", { params: { status: "exchanged", limit: 100 } }),
       ]);
 
       setAvailableItems(

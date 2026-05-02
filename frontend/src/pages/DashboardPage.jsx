@@ -57,8 +57,8 @@ export function DashboardPage() {
           requestsResponse,
         ] = await Promise.all([
           api.get("/recommendations/me"),
-          api.get("/items", { params: { status: "available" } }),
-          api.get("/items", { params: { status: "exchanged" } }),
+          api.get("/items", { params: { status: "available", limit: 100 } }),
+          api.get("/items", { params: { status: "exchanged", limit: 100 } }),
           api.get("/exchange-requests"),
         ]);
 

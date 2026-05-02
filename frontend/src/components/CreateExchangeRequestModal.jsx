@@ -37,7 +37,9 @@ export function CreateExchangeRequestModal({
       setOffer(initialOffer);
       try {
         const currentUser = user || (await loadUser());
-        const response = await api.get("/items", { params: { status: "available" } });
+        const response = await api.get("/items", {
+          params: { status: "available", limit: 100 },
+        });
         const items = response.data.items.filter(
           (item) => item.user_id === currentUser.id && item.id !== requestedItem.id
         );

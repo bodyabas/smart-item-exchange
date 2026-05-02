@@ -267,6 +267,9 @@ Supported filters:
 - `min_created_at`
 - `max_created_at`
 - `search`
+- `page`
+- `limit`
+- `sort`
 
 Examples:
 
@@ -274,7 +277,29 @@ Examples:
 GET /items?status=available
 GET /items?category=Electronics&city=Kyiv
 GET /items?search=iphone
+GET /items?status=available&page=2&limit=6
+GET /items?status=available&sort=city
 ```
+
+`GET /items` is paginated. Defaults are `page = 1` and `limit = 10`.
+The response includes pagination metadata:
+
+```json
+{
+  "items": [],
+  "page": 1,
+  "total_pages": 1,
+  "total_items": 0
+}
+```
+
+Supported sort values:
+
+- `newest`: newest items first, default
+- `condition`: condition A-Z
+- `city`: city A-Z
+
+Invalid sort values fall back to `newest`.
 
 Categories are selected from a fixed list in the frontend and validated by the
 backend:

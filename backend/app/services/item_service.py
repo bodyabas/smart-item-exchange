@@ -11,9 +11,12 @@ from app.services.storage_service import StorageService
 
 
 class ItemService:
+    ALLOWED_SORTS = ("newest", "condition", "city")
+
     @staticmethod
-    def list_items(filters=None):
+    def list_items(filters=None, page=1, limit=10, sort="newest"):
         filters = filters or {}
+        sort = sort if sort in ItemService.ALLOWED_SORTS else "newest"
         query = Item.query
 
         for field in ("status", "category", "city", "condition"):
@@ -41,11 +44,24 @@ class ItemService:
                 )
             )
 
-        items = query.order_by(Item.created_at.desc()).all()
-        return ItemSchema(many=True).dump(items)
+        total_items = query.count()
+        total_pages = max((total_items + limit - 1) // limit, 1)
+        page = min(page, total_pages)
+        items = (
+            ItemService._apply_sort(query, sort)
+            .offset((page - 1) * limit)
+            .limit(limit)
+            .all()
+        )
+        return {
+            "items": ItemSchema(many=True).dump(items),
+            "page": page,
+            "total_pages": total_pages,
+            "total_items": total_items,
+        }
 
     @staticmethod
-    def validate_filters(filters):
+    def validate_filters(filters, page=1, limit=10):
         status = filters.get("status")
         if status and status not in Item.ALLOWED_STATUSES:
             return "Invalid item status"
@@ -59,7 +75,20 @@ class ItemService:
             if value and not ItemService._parse_datetime(value):
                 return f"Invalid {field}. Use ISO 8601 format."
 
+        if page < 1:
+            return "Page must be greater than or equal to 1"
+        if limit < 1 or limit > 100:
+            return "Limit must be between 1 and 100"
+
         return None
+
+    @staticmethod
+    def _apply_sort(query, sort):
+        if sort == "condition":
+            return query.order_by(Item.condition.asc(), Item.created_at.desc())
+        if sort == "city":
+            return query.order_by(Item.city.asc(), Item.created_at.desc())
+        return query.order_by(Item.created_at.desc())
 
     @staticmethod
     def get_item(item_id):

@@ -19,11 +19,24 @@ def list_items():
         "max_created_at": request.args.get("max_created_at"),
         "search": request.args.get("search"),
     }
-    error = ItemService.validate_filters(filters)
+    page = request.args.get("page", default=1, type=int)
+    limit = request.args.get("limit", default=10, type=int)
+    sort = request.args.get("sort", default="newest")
+    error = ItemService.validate_filters(filters, page=page, limit=limit)
     if error:
         return jsonify({"message": error}), 400
 
-    return jsonify({"items": ItemService.list_items(filters=filters)}), 200
+    return (
+        jsonify(
+            ItemService.list_items(
+                filters=filters,
+                page=page,
+                limit=limit,
+                sort=sort,
+            )
+        ),
+        200,
+    )
 
 
 @items_bp.get("/<int:item_id>")
