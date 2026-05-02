@@ -1,6 +1,26 @@
 # Smart Item Exchange
 
-Backend for a platform that allows users to exchange items.
+Full-stack platform that allows users to exchange items.
+
+## Project Structure
+
+```text
+backend/
+  app/
+  uploads/
+  Dockerfile
+  manage.py
+  requirements.txt
+frontend/
+  src/
+  package.json
+  vite.config.js
+docker-compose.yml
+.env
+.env.example
+.gitignore
+README.md
+```
 
 ## Tech Stack
 
@@ -40,6 +60,54 @@ tables, exchange negotiation tables/columns, and pgvector extension setup:
 docker compose down -v
 docker compose up --build
 ```
+
+## Frontend
+
+The React app lives in `frontend/` and uses Vite, Tailwind CSS, Axios, and React
+Router.
+
+Create `frontend/.env` from `frontend/.env.example`:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+Run the frontend locally:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Build the frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+Public pages:
+
+- `/items`
+- `/items/<id>`
+- `/login`
+- `/register`
+
+Protected pages:
+
+- `/dashboard`
+- `/items/new`
+- `/exchange-requests`
+- `/exchange-requests/<id>/counter`
+- `/profile`
+
+When logged out, the navbar shows `Items`, `Login`, and `Register`. When logged
+in, it shows `Dashboard`, `Items`, `Add Item`, `Exchange Requests`, `Profile`,
+and `Logout`.
+
+The Dashboard is the main user hub. It shows item/request summary cards, quick
+actions, and the top AI recommendations from `GET /recommendations/me`.
 
 ## Endpoints
 
@@ -98,10 +166,15 @@ Allowed image types:
 
 Maximum file size is 5MB.
 
+The Add Item frontend requires 1 to 5 item images before submit. It creates the
+item first with `POST /items`, then uploads each selected image to
+`POST /uploads/items/<item_id>` using multipart form data with the field name
+`file`.
+
 `POST /uploads/avatar` stores files at:
 
 ```text
-uploads/avatars/<unique_filename>
+backend/uploads/avatars/<unique_filename>
 ```
 
 and updates the current user's `avatar_url` with a URL like
@@ -110,7 +183,7 @@ and updates the current user's `avatar_url` with a URL like
 `POST /uploads/items/<item_id>` stores files at:
 
 ```text
-uploads/items/<item_id>/<unique_filename>
+backend/uploads/items/<item_id>/<unique_filename>
 ```
 
 Only the item owner can upload item images. Item responses include:

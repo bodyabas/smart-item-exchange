@@ -1,0 +1,196 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
+import { api, getErrorMessage, resolveMediaUrl } from "../api/client.js";
+import { Button } from "../components/Button.jsx";
+import { ItemCard } from "../components/ItemCard.jsx";
+import { PageHeader } from "../components/PageHeader.jsx";
+import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import {
+  buildImageFormData,
+  createPreviewUrl,
+  validateImageFile,
+} from "../utils/imageUpload.js";
+
+export function ProfilePage() {
+  const { user, loadUser } = useAuth();
+  const [form, setForm] = useState({ name: "", avatar_url: "" });
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [availableItems, setAvailableItems] = useState([]);
+  const [exchangedItems, setExchangedItems] = useState([]);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const loadProfile = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const currentUser = await loadUser();
+      setForm({
+        name: currentUser.name || "",
+        avatar_url: currentUser.avatar_url || "",
+      });
+      setAvatarPreview(resolveMediaUrl(currentUser.avatar_url));
+
+      const [availableResponse, exchangedResponse] = await Promise.all([
+        api.get("/items", { params: { status: "available" } }),
+        api.get("/items", { params: { status: "exchanged" } }),
+      ]);
+
+      setAvailableItems(
+        availableResponse.data.items.filter((item) => item.user_id === currentUser.id)
+      );
+      setExchangedItems(
+        exchangedResponse.data.items.filter((item) => item.user_id === currentUser.id)
+      );
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setSaved(false);
+    setSaving(true);
+    setError("");
+    try {
+      await api.put("/users/me", form);
+      if (avatarFile) {
+        await api.post("/uploads/avatar", buildImageFormData(avatarFile));
+      }
+      setAvatarFile(null);
+      await loadProfile();
+      setSaved(true);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const selectAvatar = (event) => {
+    const file = event.target.files?.[0];
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError("");
+    setAvatarFile(file);
+    setAvatarPreview(createPreviewUrl(file) || resolveMediaUrl(form.avatar_url));
+  };
+
+  if (loading) return <LoadingState label="Loading profile..." />;
+
+  return (
+    <div>
+      <PageHeader
+        title="Profile"
+        subtitle="Manage your profile and item inventory."
+        action={
+          <Link to="/items/new">
+            <Button>Add item</Button>
+          </Link>
+        }
+      />
+      <ErrorState message={error} />
+      {saved ? (
+        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          Profile saved
+        </div>
+      ) : null}
+
+      <section className="mb-8 grid gap-5 rounded-lg border border-line bg-white p-5 shadow-soft lg:grid-cols-[auto_1fr]">
+        <Avatar user={user} name={form.name} avatarUrl={avatarPreview} />
+        <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label>Name</label>
+            <input
+              value={form.name}
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <label>Avatar image</label>
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectAvatar} />
+            {avatarFile ? (
+              <p className="text-sm text-muted">Selected: {avatarFile.name}</p>
+            ) : null}
+          </div>
+          <div className="md:col-span-2">
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : "Save profile"}
+            </Button>
+          </div>
+        </form>
+      </section>
+
+      <InventorySection
+        title="My available items"
+        emptyMessage="You do not have available items yet."
+        items={availableItems}
+      />
+      <InventorySection
+        title="My exchanged items"
+        emptyMessage="No exchanged items yet."
+        items={exchangedItems}
+      />
+    </div>
+  );
+}
+
+function Avatar({ user, name, avatarUrl }) {
+  const initials = (name || user?.email || "?")
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <div className="flex flex-col items-center gap-3 text-center">
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={name || "Profile avatar"}
+          className="h-28 w-28 rounded-full object-cover"
+        />
+      ) : (
+        <div className="grid h-28 w-28 place-items-center rounded-full bg-teal-50 text-2xl font-semibold text-brand">
+          {initials}
+        </div>
+      )}
+      <div>
+        <p className="font-semibold">{name || user?.email}</p>
+        <p className="text-sm text-muted">{user?.email}</p>
+      </div>
+    </div>
+  );
+}
+
+function InventorySection({ title, emptyMessage, items }) {
+  return (
+    <section className="mb-8">
+      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+      {items.length ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((item) => (
+            <ItemCard key={item.id} item={item} />
+          ))}
+        </div>
+      ) : (
+        <EmptyState message={emptyMessage} />
+      )}
+    </section>
+  );
+}

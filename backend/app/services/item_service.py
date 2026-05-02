@@ -6,6 +6,7 @@ from app.extensions import db
 from app.models.item import Item
 from app.schemas.item_schema import ItemSchema
 from app.services.embedding_service import EmbeddingService
+from app.services.storage_service import StorageService
 
 
 class ItemService:
@@ -76,6 +77,26 @@ class ItemService:
         db.session.commit()
 
         return ItemSchema().dump(item)
+
+    @staticmethod
+    def create_item_with_images(user_id, data, image_files):
+        item = Item(
+            user_id=user_id,
+            embedding=EmbeddingService.generate_item_embedding(data),
+            matching_embedding=EmbeddingService.generate_item_matching_embedding(data),
+            **data,
+        )
+
+        db.session.add(item)
+        db.session.flush()
+
+        error = StorageService.create_item_images(item, image_files)
+        if error:
+            db.session.rollback()
+            return None, error
+
+        db.session.commit()
+        return ItemSchema().dump(item), None
 
     @staticmethod
     def update_item(item_id, user_id, data):

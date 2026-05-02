@@ -1,6 +1,6 @@
 services:
   api:
-    build: .
+    build: ./backend
     env_file:
       - .env
     command: >
@@ -17,7 +17,7 @@ services:
       UPLOAD_FOLDER: ${UPLOAD_FOLDER:-uploads}
       FLASK_APP: manage.py
     volumes:
-      - ./uploads:/app/uploads
+      - ./backend/uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy

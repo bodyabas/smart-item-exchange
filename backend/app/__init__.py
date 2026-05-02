@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, send_from_directory
+from flask_cors import CORS
 
 from app.commands import ensure_database_extensions, register_commands
 from app.config import Config
@@ -17,6 +18,17 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     jwt.init_app(app)
+    CORS(
+        app,
+        origins=[
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:5174",
+        ],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization"],
+    )
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(items_bp, url_prefix="/items")

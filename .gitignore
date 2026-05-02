@@ -51,4 +51,12 @@ Thumbs.db
 
 # Docker/local database volumes
 postgres_data/
-uploads/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Frontend
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+frontend/node_modules/
+frontend/dist/

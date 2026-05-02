@@ -52,6 +52,23 @@ class StorageService:
         return ItemImageSchema().dump(image), None
 
     @staticmethod
+    def create_item_images(item, files):
+        files = [file for file in files if file and file.filename]
+        if not files:
+            return "missing_file"
+
+        for file in files:
+            error = StorageService._validate_file(file)
+            if error:
+                return error
+
+        for file in files:
+            url = StorageService._save_local_file(file, Path("items") / str(item.id))
+            db.session.add(ItemImage(item_id=item.id, image_url=url))
+
+        return None
+
+    @staticmethod
     def _save_local_file(file, relative_dir):
         upload_root = Path(current_app.config.get("UPLOAD_FOLDER", "uploads"))
         target_dir = upload_root / relative_dir
