@@ -26,16 +26,20 @@ flask, react, postgresql, pgvector, docker, ai, marketplace
 - Admin panel foundation with user/item/request management
 - Optional CAPTCHA verification for login and registration
 - Google OAuth login with JWT handoff to the React frontend
+- Google users can set a local password later from Profile
 - Login/register rate limiting and expiring JWT access tokens
 - Register password strength indicator and confirm password validation
-- Public item browsing and protected user dashboard
+- Public item browsing and protected marketplace dashboard
 - User profile management with avatar file upload
 - Item CRUD with local multi-image uploads
+- Fixed item categories with dropdown selection and backend validation
 - Item filters by status, category, city, condition, date, and search text
 - Exchange requests with accept, reject, cancel, and counter-offer flow
+- User-friendly incoming/outgoing request labels and item flow display
 - Optional cash adjustment and message negotiation
 - Item availability logic with `available` and `exchanged` statuses
 - AI recommendations using OpenAI embeddings and PostgreSQL pgvector
+- Dashboard recommendation carousel with match score, why recommended, and expandable score details
 - Local upload storage, no external email or cloud storage dependency
 
 ## Tech Stack
@@ -114,6 +118,7 @@ npm run build
 
 - `POST /auth/register`
 - `POST /auth/login`
+- `POST /auth/set-password`
 - `GET /auth/google/login`
 - `GET /auth/google/callback`
 
@@ -173,6 +178,30 @@ Required Google redirect URI in Google Cloud Console:
 http://localhost:5000/auth/google/callback
 ```
 
+Google OAuth users can set a local password later from Profile. The protected
+endpoint is:
+
+```text
+POST /auth/set-password
+```
+
+Request body:
+
+```json
+{
+  "new_password": "password123"
+}
+```
+
+If the account already has a password, the API returns:
+
+```text
+Password is already set. Use change password instead.
+```
+
+User responses include a safe `has_password` boolean. `password_hash` is never
+exposed.
+
 ### Admin
 
 - `GET /admin/users`
@@ -210,9 +239,15 @@ User responses include `avatar_url`, for example:
   "id": 1,
   "name": "Test User",
   "email": "test@example.com",
-  "avatar_url": "/uploads/avatars/avatar.png"
+  "avatar_url": "/uploads/avatars/avatar.png",
+  "role": "user",
+  "auth_provider": "google",
+  "has_password": false
 }
 ```
+
+If `has_password` is `false`, the Profile page shows a Set password form so a
+Google account can also log in later with email and password.
 
 ### Items
 
@@ -237,9 +272,26 @@ Examples:
 
 ```text
 GET /items?status=available
-GET /items?category=phones&city=Kyiv
+GET /items?category=Electronics&city=Kyiv
 GET /items?search=iphone
 ```
+
+Categories are selected from a fixed list in the frontend and validated by the
+backend:
+
+- `Electronics`
+- `Clothing & Accessories`
+- `Home & Furniture`
+- `Books & Education`
+- `Sports & Outdoor`
+- `Hobbies & Entertainment`
+- `Collectibles`
+- `Kids & Toys`
+- `Beauty & Health`
+- `Tools & DIY`
+- `Car & Auto`
+- `Pets`
+- `Other`
 
 The frontend requires 1 to 5 images when creating an item. The backend also
 enforces a maximum of 5 images per item. If an item already has 3 images, only 2
@@ -325,6 +377,14 @@ Allowed `cash_adjustment_direction` values:
 - `sender_pays`
 - `receiver_pays`
 
+The frontend displays requests as product interactions instead of technical
+database labels:
+
+- `Outgoing request`
+- `Incoming request`
+- item flow such as `Ball -> iPhone 12`
+- active requests show `Waiting for response` when the other user needs to act
+
 ### AI Recommendations
 
 - `GET /recommendations/<item_id>`
@@ -334,7 +394,7 @@ Item embeddings are stored in PostgreSQL using pgvector. Embeddings use 1536
 dimensions for `text-embedding-3-small`.
 
 `GET /recommendations/me` requires JWT auth and powers the Dashboard
-recommendation section.
+recommendation carousel.
 
 Final recommendation score:
 
@@ -349,6 +409,18 @@ final_score =
   0.05 * freshness_score
 ```
 
+The recommendation UI shows the score as a percentage with a quality label:
+
+- `>= 75%`: Excellent match
+- `>= 55%`: Good match
+- `>= 35%`: Possible match
+- otherwise: Low relevance
+
+Dashboard recommendations are shown in a carousel: 2 cards per view on desktop
+and 1 card per view on mobile. Each card shows a simplified "Why recommended?"
+section and hides the detailed score breakdown until the user clicks
+`Show details`.
+
 ## Frontend Routes
 
 Public routes:
@@ -357,6 +429,7 @@ Public routes:
 - `/items/<id>`
 - `/login`
 - `/register`
+- `/oauth-success`
 
 Protected routes:
 
@@ -365,11 +438,16 @@ Protected routes:
 - `/exchange-requests`
 - `/exchange-requests/<id>/counter`
 - `/profile`
+
+Admin-only route:
+
 - `/admin`
 
 When logged out, the navbar shows `Items`, `Login`, and `Register`. When logged
 in, it shows `Dashboard`, `Items`, `Add Item`, `Exchange Requests`, `Profile`,
-and `Logout`. Admin users also see `Admin`.
+and `Logout`. Admin users also see `Admin`; non-admin users are redirected away
+from `/admin` on the frontend and still receive `403` from protected admin API
+endpoints.
 
 ## Environment Variables
 

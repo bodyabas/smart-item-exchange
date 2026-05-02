@@ -5,6 +5,7 @@ import { api, getErrorMessage, resolveMediaUrl } from "../api/client.js";
 import { Button } from "../components/Button.jsx";
 import { ItemCard } from "../components/ItemCard.jsx";
 import { PageHeader } from "../components/PageHeader.jsx";
+import { PasswordField } from "../components/PasswordField.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
@@ -22,7 +23,10 @@ export function ProfilePage() {
   const [exchangedItems, setExchangedItems] = useState([]);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ new_password: "" });
+  const [passwordSaving, setPasswordSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async () => {
@@ -61,6 +65,7 @@ export function ProfilePage() {
   const submit = async (event) => {
     event.preventDefault();
     setSaved(false);
+    setPasswordSaved(false);
     setSaving(true);
     setError("");
     try {
@@ -90,6 +95,24 @@ export function ProfilePage() {
     setAvatarPreview(createPreviewUrl(file) || resolveMediaUrl(form.avatar_url));
   };
 
+  const submitPassword = async (event) => {
+    event.preventDefault();
+    setError("");
+    setSaved(false);
+    setPasswordSaved(false);
+    setPasswordSaving(true);
+    try {
+      await api.post("/auth/set-password", passwordForm);
+      setPasswordForm({ new_password: "" });
+      await loadProfile();
+      setPasswordSaved(true);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
+
   if (loading) return <LoadingState label="Loading profile..." />;
 
   return (
@@ -107,6 +130,11 @@ export function ProfilePage() {
       {saved ? (
         <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
           Profile saved
+        </div>
+      ) : null}
+      {passwordSaved ? (
+        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          Password has been set successfully
         </div>
       ) : null}
 
@@ -134,6 +162,33 @@ export function ProfilePage() {
           </div>
         </form>
       </section>
+
+      {user?.has_password === false ? (
+        <section className="mb-8 rounded-lg border border-line bg-white p-5 shadow-soft">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold">Set password</h2>
+            <p className="text-sm text-muted">
+              Add a password so you can log in with email and password as well as Google.
+            </p>
+          </div>
+          <form onSubmit={submitPassword} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+            <PasswordField
+              label="New password"
+              value={passwordForm.new_password}
+              autoComplete="new-password"
+              onChange={(event) =>
+                setPasswordForm({ new_password: event.target.value })
+              }
+            />
+            <Button type="submit" disabled={passwordSaving}>
+              {passwordSaving ? "Setting..." : "Set password"}
+            </Button>
+          </form>
+          <p className="mt-3 text-sm text-muted">
+            Use at least 8 characters with at least one letter and one number.
+          </p>
+        </section>
+      ) : null}
 
       <InventorySection
         title="My available items"

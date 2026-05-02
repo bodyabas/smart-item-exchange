@@ -4,6 +4,7 @@ import { api, getErrorMessage } from "../api/client.js";
 import { ItemCard } from "../components/ItemCard.jsx";
 import { PageHeader } from "../components/PageHeader.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
+import { ITEM_CATEGORIES } from "../constants/itemCategories.js";
 
 const initialFilters = {
   search: "",
@@ -48,14 +49,32 @@ export function ItemsPage() {
     <div>
       <PageHeader title="Available items" subtitle="Browse listings ready for exchange." />
       <form onSubmit={submit} className="mb-6 grid gap-3 rounded-lg border border-line bg-white p-4 shadow-soft md:grid-cols-5">
-        {Object.keys(initialFilters).map((field) => (
-          <input
-            key={field}
-            placeholder={field.replace("_", " ")}
-            value={filters[field]}
-            onChange={(event) => setFilters({ ...filters, [field]: event.target.value })}
-          />
-        ))}
+        <input
+          placeholder="search"
+          value={filters.search}
+          onChange={(event) => setFilters({ ...filters, search: event.target.value })}
+        />
+        <select
+          value={filters.category}
+          onChange={(event) => setFilters({ ...filters, category: event.target.value })}
+        >
+          <option value="">All categories</option>
+          {ITEM_CATEGORIES.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+        <input
+          placeholder="city"
+          value={filters.city}
+          onChange={(event) => setFilters({ ...filters, city: event.target.value })}
+        />
+        <input
+          placeholder="condition"
+          value={filters.condition}
+          onChange={(event) => setFilters({ ...filters, condition: event.target.value })}
+        />
         <button
           className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
           disabled={loading}

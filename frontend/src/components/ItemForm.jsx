@@ -1,4 +1,5 @@
 import { Button } from "./Button.jsx";
+import { ITEM_CATEGORIES } from "../constants/itemCategories.js";
 
 const defaultValues = {
   title: "",
@@ -21,7 +22,14 @@ export function ItemForm({ value = defaultValues, onChange, onSubmit, loading })
         </div>
         <div>
           <label>Category</label>
-          <input value={value.category} onChange={(event) => update("category", event.target.value)} required />
+          <select value={value.category} onChange={(event) => update("category", event.target.value)} required>
+            <option value="">Select category</option>
+            {ITEM_CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       <div>

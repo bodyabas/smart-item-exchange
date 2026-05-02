@@ -1,10 +1,11 @@
 from urllib.parse import urlencode
 
 from flask import Blueprint, current_app, jsonify, redirect, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from marshmallow import ValidationError
 
 from app.extensions import limiter, oauth
-from app.schemas.auth_schema import LoginSchema, RegisterSchema
+from app.schemas.auth_schema import LoginSchema, RegisterSchema, SetPasswordSchema
 from app.services.auth_service import AuthService
 from app.services.captcha_service import CaptchaService
 
@@ -47,6 +48,26 @@ def login():
         return jsonify({"message": error}), 401
 
     return jsonify(result), 200
+
+
+@auth_bp.post("/set-password")
+@jwt_required()
+def set_password():
+    try:
+        data = SetPasswordSchema().load(request.get_json() or {})
+    except ValidationError as error:
+        return jsonify({"errors": error.messages}), 400
+
+    error = AuthService.set_password(
+        int(get_jwt_identity()),
+        data["new_password"],
+    )
+    if error == "User not found":
+        return jsonify({"message": error}), 404
+    if error:
+        return jsonify({"message": error}), 400
+
+    return jsonify({"message": "Password has been set successfully"}), 200
 
 
 @auth_bp.get("/google/login")

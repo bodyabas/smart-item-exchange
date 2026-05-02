@@ -27,3 +27,11 @@ class LoginSchema(Schema):
     email = fields.Email(required=True)
     password = fields.Str(required=True, load_only=True)
     captcha_token = fields.Str(required=False, load_only=True, allow_none=True)
+
+
+class SetPasswordSchema(Schema):
+    new_password = fields.Str(required=True, load_only=True)
+
+    @validates("new_password")
+    def validate_new_password(self, value):
+        validate_strong_password(value)

@@ -8,7 +8,11 @@ class UserSchema(Schema):
     avatar_url = fields.Str(dump_only=True, allow_none=True)
     role = fields.Str(dump_only=True)
     auth_provider = fields.Str(dump_only=True)
+    has_password = fields.Method("get_has_password", dump_only=True)
     created_at = fields.DateTime(dump_only=True)
+
+    def get_has_password(self, user):
+        return user.has_password()
 
 
 class UpdateUserSchema(Schema):

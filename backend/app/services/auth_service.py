@@ -1,6 +1,5 @@
 from flask import current_app
 from flask_jwt_extended import create_access_token
-from werkzeug.security import generate_password_hash
 
 from app.extensions import db
 from app.models.user import User
@@ -37,6 +36,12 @@ class AuthService:
         email = data["email"].lower().strip()
         user = User.query.filter_by(email=email).first()
 
+        if user and not user.has_password():
+            return (
+                None,
+                "This account was created using Google. Please sign in with Google or set a password from your profile.",
+            )
+
         if not user or not user.check_password(data["password"]):
             return None, "Invalid email or password"
 
@@ -65,7 +70,7 @@ class AuthService:
                 google_id=google_id,
                 auth_provider=User.AUTH_PROVIDER_GOOGLE,
                 role=User.ROLE_USER,
-                password_hash=generate_password_hash("google-oauth-only"),
+                password_hash=None,
             )
             db.session.add(user)
 
@@ -76,6 +81,19 @@ class AuthService:
             "user": AuthService.serialize_user(user),
             "access_token": access_token,
         }
+
+    @staticmethod
+    def set_password(user_id, password):
+        user = db.session.get(User, user_id)
+        if not user:
+            return "User not found"
+
+        if user.has_password():
+            return "Password is already set. Use change password instead."
+
+        user.set_password(password)
+        db.session.commit()
+        return None
 
     @staticmethod
     def serialize_user(user):

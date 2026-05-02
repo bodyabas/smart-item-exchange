@@ -1,5 +1,7 @@
 from marshmallow import Schema, ValidationError, fields, validate, validates_schema
 
+from app.constants import ITEM_CATEGORIES
+
 
 class ItemImageSchema(Schema):
     id = fields.Int(dump_only=True)
@@ -24,7 +26,7 @@ class ItemSchema(Schema):
 class CreateItemSchema(Schema):
     title = fields.Str(required=True, validate=validate.Length(min=2, max=150))
     description = fields.Str(required=True, validate=validate.Length(min=5))
-    category = fields.Str(required=True, validate=validate.Length(min=2, max=80))
+    category = fields.Str(required=True, validate=validate.OneOf(ITEM_CATEGORIES))
     condition = fields.Str(required=True, validate=validate.Length(min=2, max=80))
     city = fields.Str(required=True, validate=validate.Length(min=2, max=120))
     desired_exchange = fields.Str(
@@ -37,7 +39,7 @@ class CreateItemSchema(Schema):
 class UpdateItemSchema(Schema):
     title = fields.Str(validate=validate.Length(min=2, max=150))
     description = fields.Str(validate=validate.Length(min=5))
-    category = fields.Str(validate=validate.Length(min=2, max=80))
+    category = fields.Str(validate=validate.OneOf(ITEM_CATEGORIES))
     condition = fields.Str(validate=validate.Length(min=2, max=80))
     city = fields.Str(validate=validate.Length(min=2, max=120))
     desired_exchange = fields.Str(allow_none=True, validate=validate.Length(max=255))

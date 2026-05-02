@@ -6,6 +6,7 @@ import { Button } from "../components/Button.jsx";
 import { ConfirmModal } from "../components/ConfirmModal.jsx";
 import { CreateExchangeRequestModal } from "../components/CreateExchangeRequestModal.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
+import { ITEM_CATEGORIES } from "../constants/itemCategories.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
   buildImageFormData,
@@ -440,7 +441,16 @@ function EditItemForm({
         </div>
         <div>
           <label>Category</label>
-          <input value={form.category} onChange={(event) => update("category", event.target.value)} />
+          <select value={form.category} onChange={(event) => update("category", event.target.value)}>
+            {!ITEM_CATEGORIES.includes(form.category) ? (
+              <option value={form.category}>{form.category || "Select category"}</option>
+            ) : null}
+            {ITEM_CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

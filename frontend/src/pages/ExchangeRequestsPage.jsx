@@ -175,12 +175,21 @@ function ExchangeRequestCard({
   const finalLabel = finalStatusLabel[request.status];
   const loadingAction = (name) => actionLoading === `${request.id}-${name}`;
   const anyActionLoading = Boolean(actionLoading);
+  const direction =
+    request.sender_id === currentUserId ? "Outgoing request" : "Incoming request";
+  const offeredTitle = offeredItem?.title || `Item #${request.offered_item_id}`;
+  const requestedTitle = requestedItem?.title || `Item #${request.requested_item_id}`;
 
   return (
     <article className="rounded-lg border border-line bg-white p-4 shadow-soft">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-muted">{direction}</p>
+          <h3 className="mt-1 truncate text-lg font-semibold">
+            {offeredTitle} → {requestedTitle}
+          </h3>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-semibold">Request #{request.id}</h3>
           <span className="rounded-full bg-surface px-2 py-1 text-xs font-semibold text-muted">
             {request.status}
           </span>
@@ -191,7 +200,9 @@ function ExchangeRequestCard({
           ) : null}
         </div>
         {active && latestOfferByCurrentUser ? (
-          <p className="text-sm text-muted">Waiting for the other participant</p>
+          <p className="basis-full text-sm text-muted sm:text-right">
+            Waiting for response
+          </p>
         ) : null}
       </div>
 

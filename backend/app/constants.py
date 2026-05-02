@@ -1,0 +1,15 @@
+ITEM_CATEGORIES = (
+    "Electronics",
+    "Clothing & Accessories",
+    "Home & Furniture",
+    "Books & Education",
+    "Sports & Outdoor",
+    "Hobbies & Entertainment",
+    "Collectibles",
+    "Kids & Toys",
+    "Beauty & Health",
+    "Tools & DIY",
+    "Car & Auto",
+    "Pets",
+    "Other",
+)

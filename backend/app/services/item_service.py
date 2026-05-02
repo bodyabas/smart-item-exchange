@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import or_
 
+from app.constants import ITEM_CATEGORIES
 from app.extensions import db
 from app.models.item import Item
 from app.schemas.item_schema import ItemSchema
@@ -48,6 +49,10 @@ class ItemService:
         status = filters.get("status")
         if status and status not in Item.ALLOWED_STATUSES:
             return "Invalid item status"
+
+        category = filters.get("category")
+        if category and category not in ITEM_CATEGORIES:
+            return "Invalid item category"
 
         for field in ("min_created_at", "max_created_at"):
             value = filters.get(field)

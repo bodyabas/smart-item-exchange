@@ -20,7 +20,7 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     name = db.Column(db.String(120), nullable=False)
     avatar_url = db.Column(db.String(500), nullable=True)
-    password_hash = db.Column(db.String(255), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=True)
     role = db.Column(db.String(20), nullable=False, default=ROLE_USER, index=True)
     google_id = db.Column(db.String(255), nullable=True, unique=True, index=True)
     auth_provider = db.Column(
@@ -55,4 +55,13 @@ class User(db.Model):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
+        if not self.password_hash:
+            return False
         return check_password_hash(self.password_hash, password)
+
+    def has_password(self):
+        if not self.password_hash:
+            return False
+        if self.auth_provider == self.AUTH_PROVIDER_GOOGLE:
+            return not check_password_hash(self.password_hash, "google-oauth-only")
+        return True
