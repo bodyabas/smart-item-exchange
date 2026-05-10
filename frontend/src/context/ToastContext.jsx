@@ -10,9 +10,9 @@ const toastStyles = {
 };
 
 const toastLabels = {
-  success: "Success",
-  error: "Error",
-  info: "Info",
+  success: "Успіх",
+  error: "Помилка",
+  info: "Інфо",
 };
 
 export function ToastProvider({ children }) {
@@ -52,7 +52,7 @@ export function ToastProvider({ children }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`rounded-lg border p-4 shadow-soft ${toastStyles[toast.type] || toastStyles.info}`}
+            className={`rounded-2xl border p-4 shadow-soft ${toastStyles[toast.type] || toastStyles.info}`}
             role="status"
           >
             <div className="flex items-start justify-between gap-3">
@@ -66,7 +66,7 @@ export function ToastProvider({ children }) {
                 type="button"
                 onClick={() => removeToast(toast.id)}
                 className="text-sm font-semibold opacity-70 hover:opacity-100"
-                aria-label="Dismiss notification"
+                aria-label="Закрити сповіщення"
               >
                 x
               </button>

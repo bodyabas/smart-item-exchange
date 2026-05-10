@@ -59,7 +59,7 @@ export function CreateItemPage() {
     }
 
     if (maxExceeded) {
-      const message = `You can upload up to ${MAX_ITEM_IMAGES} images.`;
+      const message = `Можна завантажити до ${MAX_ITEM_IMAGES} фото.`;
       setError(message);
       toast.error(message);
       setImageFiles(nextFiles);
@@ -93,7 +93,7 @@ export function CreateItemPage() {
     setError("");
 
     if (!imageFiles.length) {
-      const message = "Please select at least one item image.";
+      const message = "Оберіть щонайменше одне фото речі.";
       setError(message);
       toast.error(message);
       return;
@@ -106,13 +106,13 @@ export function CreateItemPage() {
       for (const file of imageFiles) {
         await api.post(`/uploads/items/${createdItemId}`, buildImageFormData(file));
       }
-      toast.success("Item created successfully.");
-      toast.success("Images uploaded successfully.");
+      toast.success("Річ створено.");
+      toast.success("Фото завантажено.");
       setImageFiles([]);
       setImagePreviews([]);
       navigate(`/items/${createdItemId}`);
     } catch (err) {
-      const message = `Item was not fully created: ${getErrorMessage(err)}`;
+      const message = `Річ створено не повністю: ${getErrorMessage(err)}`;
       setError(message);
       toast.error(message);
     } finally {
@@ -122,16 +122,16 @@ export function CreateItemPage() {
 
   return (
     <div>
-      <PageHeader title="Add item" subtitle="Create a listing and describe what you want in return." />
+      <PageHeader title="Додати річ" subtitle="Створіть оголошення та опишіть, що хочете отримати натомість." />
       <ErrorState message={error} />
-      <section className="mb-5 rounded-lg border border-line bg-white p-5 shadow-soft">
-        <label>Item images</label>
+      <section className="mb-6 rounded-2xl border border-line bg-white p-5 shadow-soft">
+        <label>Фото речі</label>
         <p className="mt-1 text-sm text-muted">
-          Upload up to {MAX_ITEM_IMAGES} images. JPG, PNG or WEBP. Max 5MB each.
-          The first image will be used as the main photo.
+          Завантажте до {MAX_ITEM_IMAGES} фото. JPG, PNG або WEBP. Максимум 5MB для кожного.
+          Перше фото буде головним.
         </p>
         <p className="mt-1 text-sm font-medium text-brand">
-          {imageFiles.length} / {MAX_ITEM_IMAGES} images selected
+          {imageFiles.length} / {MAX_ITEM_IMAGES} фото вибрано
         </p>
         <div className="mt-3 space-y-4">
           {imagePreviews.length ? (
@@ -139,12 +139,12 @@ export function CreateItemPage() {
               {imagePreviews.map((preview, index) => (
                 <div
                   key={`${preview}-${index}`}
-                  className="relative overflow-hidden rounded-md border border-line bg-white p-2"
+                  className="relative overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-sm"
                 >
-                  <div className="h-32 w-full overflow-hidden rounded bg-slate-100">
+                  <div className="h-32 w-full overflow-hidden rounded-xl bg-slate-100">
                     <img
                       src={preview}
-                      alt={`Selected item ${index + 1}`}
+                      alt={`Вибрана річ ${index + 1}`}
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -154,7 +154,7 @@ export function CreateItemPage() {
                     disabled={loading}
                     className="absolute right-3 top-3 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold text-ink shadow-soft hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Remove
+                    Видалити
                   </button>
                   <p className="mt-2 truncate text-xs text-muted">
                     {index + 1}. {imageFiles[index]?.name}
@@ -163,8 +163,8 @@ export function CreateItemPage() {
               ))}
             </div>
           ) : (
-            <div className="flex aspect-[4/1] min-h-28 items-center justify-center rounded-md bg-slate-100 text-sm text-muted">
-              No images selected
+            <div className="flex aspect-[4/1] min-h-28 items-center justify-center rounded-2xl bg-slate-100 text-sm text-muted">
+              Фото не вибрано
             </div>
           )}
           <input
@@ -175,7 +175,7 @@ export function CreateItemPage() {
             disabled={loading || imageFiles.length >= MAX_ITEM_IMAGES}
           />
           {imageFiles.length >= MAX_ITEM_IMAGES ? (
-            <p className="text-sm text-muted">Image limit reached.</p>
+            <p className="text-sm text-muted">Досягнуто ліміт фото.</p>
           ) : null}
         </div>
       </section>

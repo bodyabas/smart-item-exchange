@@ -10,6 +10,7 @@ import {
   normalizeCashDirection,
   validateCashAdjustment,
 } from "../utils/cashAdjustment.js";
+import { categoryLabel, conditionLabel } from "../utils/labels.js";
 
 const initialOffer = {
   cash_adjustment_amount: 0,
@@ -81,7 +82,7 @@ export function CreateExchangeRequestModal({
     setError("");
 
     if (!selectedItemId) {
-      const message = "Select one of your available items to offer.";
+      const message = "Оберіть одну зі своїх доступних речей для пропозиції.";
       setError(message);
       toast.error(message);
       return;
@@ -110,7 +111,7 @@ export function CreateExchangeRequestModal({
         ),
         message: offer.message,
       });
-      toast.success("Exchange request created.");
+      toast.success("Запит на обмін створено.");
       onSuccess?.();
       setTimeout(() => {
         onClose();
@@ -126,24 +127,24 @@ export function CreateExchangeRequestModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/40 px-4 py-6">
-      <div className="mx-auto max-w-3xl rounded-lg border border-line bg-white shadow-soft">
+      <div className="mx-auto max-w-3xl rounded-2xl border border-line bg-white shadow-soft">
         <div className="border-b border-line p-5">
-          <h2 className="text-xl font-semibold">Create exchange request</h2>
+          <h2 className="text-xl font-bold text-gray-900">Створити запит на обмін</h2>
           <p className="text-sm text-muted">
-            Choose one of your available items to offer.
+            Оберіть одну зі своїх доступних речей для пропозиції.
           </p>
         </div>
 
         <form onSubmit={submit} className="space-y-5 p-5">
-          <section className="rounded-md bg-surface p-4">
-            <p className="text-xs font-semibold uppercase text-muted">Requested item</p>
+          <section className="rounded-2xl bg-surface p-4">
+            <p className="text-xs font-semibold uppercase text-muted">Запитувана річ</p>
             <h3 className="mt-1 font-semibold">{requestedItem.title}</h3>
             <p className="text-sm text-muted">
-              {requestedItem.category} - {requestedItem.condition} - {requestedItem.city}
+              {categoryLabel(requestedItem.category)} - {conditionLabel(requestedItem.condition)} - {requestedItem.city}
             </p>
             {requestedItem.desired_exchange ? (
               <p className="mt-1 text-sm">
-                Owner wants{" "}
+                Власник хоче{" "}
                 <span className="font-medium">{requestedItem.desired_exchange}</span>
               </p>
             ) : null}
@@ -152,10 +153,10 @@ export function CreateExchangeRequestModal({
           <ErrorState message={error} />
 
           {loading ? (
-            <LoadingState label="Loading your available items..." />
+            <LoadingState label="Завантаження ваших доступних речей..." />
           ) : availableItems.length ? (
             <section>
-              <p className="mb-3 text-sm font-semibold">Your available items</p>
+              <p className="mb-3 text-sm font-semibold">Ваші доступні речі</p>
               <div className="grid gap-3 sm:grid-cols-2">
                 {availableItems.map((item) => {
                   const image = resolveMediaUrl(item.images?.[0]?.image_url);
@@ -164,7 +165,7 @@ export function CreateExchangeRequestModal({
                   return (
                     <label
                       key={item.id}
-                      className={`cursor-pointer rounded-lg border p-3 transition ${
+                      className={`cursor-pointer rounded-2xl border p-3 transition hover:-translate-y-0.5 hover:shadow-md ${
                         selected
                           ? "border-brand bg-teal-50 ring-2 ring-brand/20"
                           : "border-line bg-white hover:bg-surface"
@@ -179,7 +180,7 @@ export function CreateExchangeRequestModal({
                           checked={selected}
                           onChange={(event) => setSelectedItemId(event.target.value)}
                         />
-                        <div className="h-16 w-20 shrink-0 overflow-hidden rounded-md bg-slate-100">
+                        <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100">
                           {image ? (
                             <img
                               src={image}
@@ -188,18 +189,18 @@ export function CreateExchangeRequestModal({
                             />
                           ) : (
                             <div className="flex h-full items-center justify-center px-2 text-center text-xs text-muted">
-                              No image
+                              Без фото
                             </div>
                           )}
                         </div>
                         <div className="min-w-0">
                           <p className="truncate font-semibold">{item.title}</p>
                           <p className="text-sm text-muted">
-                            {item.category} - {item.condition} - {item.city}
+                            {categoryLabel(item.category)} - {conditionLabel(item.condition)} - {item.city}
                           </p>
                           {item.desired_exchange ? (
                             <p className="mt-1 line-clamp-1 text-sm text-muted">
-                              Wants {item.desired_exchange}
+                              Хоче {item.desired_exchange}
                             </p>
                           ) : null}
                         </div>
@@ -210,14 +211,14 @@ export function CreateExchangeRequestModal({
               </div>
             </section>
           ) : (
-            <div className="rounded-md border border-line bg-white p-4 text-sm text-muted">
-              You do not have available items to offer yet.
+            <div className="rounded-2xl border border-line bg-white p-4 text-sm text-muted">
+              У вас поки немає доступних речей для пропозиції.
             </div>
           )}
 
           <section className="grid gap-4 md:grid-cols-2">
             <div>
-              <label>Cash adjustment amount</label>
+              <label>Сума доплати</label>
               <input
                 type="number"
                 min="0"
@@ -228,7 +229,7 @@ export function CreateExchangeRequestModal({
               />
             </div>
             <div>
-              <label>Cash adjustment direction</label>
+              <label>Хто доплачує</label>
               <select
                 value={offer.cash_adjustment_direction}
                 onChange={(event) =>
@@ -250,17 +251,17 @@ export function CreateExchangeRequestModal({
               {Number(offer.cash_adjustment_amount || 0) > 0 &&
               offer.cash_adjustment_direction === "none" ? (
                 <p className="mt-1 text-sm font-medium text-red-600">
-                  Please choose who pays the cash adjustment.
+                  Будь ласка, виберіть, хто доплачує різницю.
                 </p>
               ) : null}
             </div>
             <div className="md:col-span-2">
-              <label>Message</label>
+              <label>Повідомлення</label>
               <textarea
                 rows="3"
                 value={offer.message}
                 onChange={(event) => setOffer({ ...offer, message: event.target.value })}
-                placeholder="Add a note for the item owner"
+                placeholder="Додайте повідомлення для власника"
               />
             </div>
           </section>
@@ -268,18 +269,18 @@ export function CreateExchangeRequestModal({
           <div className="flex flex-col gap-2 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted">
               {selectedItem
-                ? `Offering ${selectedItem.title}`
-                : "Select an item before submitting."}
+                ? `Пропонуєте: ${selectedItem.title}`
+                : "Оберіть річ перед надсиланням."}
             </p>
             <div className="flex gap-2">
               <Button type="button" variant="secondary" onClick={onClose}>
-                Cancel
+                Скасувати
               </Button>
               <Button
                 type="submit"
                 disabled={submitting || loading || !availableItems.length}
               >
-                {submitting ? "Creating..." : "Create request"}
+                {submitting ? "Створення..." : "Створити запит"}
               </Button>
             </div>
           </div>

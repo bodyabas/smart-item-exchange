@@ -88,7 +88,7 @@ export function CounterOfferPage() {
 
     if (amount === originalAmount && direction === originalDirection) {
       toast.error(
-        "Please change at least one offer term before sending a counter-offer."
+        "Будь ласка, змініть хоча б одну умову пропозиції перед надсиланням зустрічної пропозиції."
       );
       return;
     }
@@ -100,7 +100,7 @@ export function CounterOfferPage() {
         cash_adjustment_amount: amount,
         cash_adjustment_direction: direction,
       });
-      toast.success("Counter-offer sent.");
+      toast.success("Зустрічну пропозицію надіслано.");
       navigate("/exchange-requests");
     } catch (err) {
       const message = getErrorMessage(err);
@@ -111,19 +111,19 @@ export function CounterOfferPage() {
     }
   };
 
-  if (loadingRequest) return <LoadingState label="Loading counter-offer..." />;
+  if (loadingRequest) return <LoadingState label="Завантаження зустрічної пропозиції..." />;
 
   return (
     <div>
-      <PageHeader title="Counter-offer" subtitle={`Negotiate request #${requestId}`} />
+      <PageHeader title="Зустрічна пропозиція" subtitle={`Узгодження запиту #${requestId}`} />
       <ErrorState message={error} />
-      <form onSubmit={submit} className="max-w-xl space-y-4 rounded-lg border border-line bg-white p-5 shadow-soft">
+      <form onSubmit={submit} className="max-w-xl space-y-5 rounded-2xl border border-line bg-white p-5 shadow-soft">
         <div>
-          <label>Cash adjustment amount</label>
+          <label>Сума доплати</label>
           <input type="number" min="0" value={form.cash_adjustment_amount} onChange={(event) => setForm({ ...form, cash_adjustment_amount: event.target.value })} />
         </div>
         <div>
-          <label>Cash adjustment direction</label>
+          <label>Хто доплачує</label>
           <select value={form.cash_adjustment_direction} onChange={(event) => setForm({ ...form, cash_adjustment_direction: event.target.value })}>
             {getCashDirectionOptions(
               user?.id,
@@ -137,10 +137,10 @@ export function CounterOfferPage() {
           </select>
         </div>
         <div>
-          <label>Message</label>
+          <label>Повідомлення</label>
           <textarea rows="4" value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} />
         </div>
-        <Button type="submit" disabled={loading}>{loading ? "Sending..." : "Send counter-offer"}</Button>
+        <Button type="submit" disabled={loading}>{loading ? "Надсилання..." : "Надіслати зустрічну пропозицію"}</Button>
       </form>
     </div>
   );

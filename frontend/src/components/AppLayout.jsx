@@ -4,17 +4,17 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 const links = [
-  ["Dashboard", "/dashboard"],
-  ["Items", "/items"],
-  ["Add Item", "/items/new"],
-  ["Exchange Requests", "/exchange-requests"],
-  ["Profile", "/profile"],
+  ["Панель", "/dashboard"],
+  ["Речі", "/items"],
+  ["Додати річ", "/items/new"],
+  ["Запити на обмін", "/exchange-requests"],
+  ["Профіль", "/profile"],
 ];
 
 const publicLinks = [
-  ["Items", "/items"],
-  ["Login", "/login"],
-  ["Register", "/register"],
+  ["Речі", "/items"],
+  ["Увійти", "/login"],
+  ["Реєстрація", "/register"],
 ];
 
 export function AppLayout() {
@@ -35,16 +35,16 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-line bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between">
+      <header className="sticky top-0 z-40 border-b border-line bg-white/95 shadow-sm backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-lg font-semibold">Smart Item Exchange</p>
-            <p className="text-sm text-muted">Trade smarter with matching tools</p>
+            <p className="text-lg font-bold tracking-tight text-gray-900">Smart Item Exchange</p>
+            <p className="text-sm text-muted">Обмінюйтеся розумніше з AI-підбором</p>
           </div>
-          <nav className="flex flex-wrap items-center gap-2">
+          <nav className="flex flex-wrap items-center gap-1.5">
             {(isAuthenticated
               ? user?.role === "admin"
-                ? [...links, ["Admin", "/admin"]]
+                ? [...links, ["Адмін", "/admin"]]
                 : links
               : publicLinks
             ).map(([label, to]) => {
@@ -53,9 +53,9 @@ export function AppLayout() {
               <Link
                 key={to}
                 to={to}
-                className={`rounded-md px-3 py-2 text-sm font-medium ${
+                className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${
                   isActive
-                    ? "bg-brand text-white"
+                    ? "bg-brand text-white shadow-sm"
                     : "text-muted hover:bg-surface hover:text-ink"
                 }`}
               >
@@ -67,15 +67,15 @@ export function AppLayout() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-md border border-line px-3 py-2 text-sm font-medium text-ink hover:bg-surface"
+                className="rounded-xl border border-line px-3 py-2 text-sm font-semibold text-ink shadow-sm hover:bg-surface"
               >
-                Logout
+                Вийти
               </button>
             ) : null}
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-6">
+      <main className="mx-auto max-w-6xl px-4 py-8">
         <Outlet />
       </main>
     </div>

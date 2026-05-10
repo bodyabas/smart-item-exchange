@@ -6,7 +6,7 @@ import { Button } from "../components/Button.jsx";
 import { ConfirmModal } from "../components/ConfirmModal.jsx";
 import { CreateExchangeRequestModal } from "../components/CreateExchangeRequestModal.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
-import { ITEM_CATEGORIES } from "../constants/itemCategories.js";
+import { ITEM_CATEGORIES, ITEM_CATEGORY_OPTIONS } from "../constants/itemCategories.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import {
@@ -15,6 +15,7 @@ import {
   MAX_ITEM_IMAGES,
   validateImageFile,
 } from "../utils/imageUpload.js";
+import { categoryLabel, conditionLabel, statusLabel } from "../utils/labels.js";
 
 const editableFields = [
   "title",
@@ -93,7 +94,7 @@ export function ItemDetailsPage() {
     setError("");
     try {
       await api.delete(`/items/${item.id}`);
-      toast.success("Item deleted successfully.");
+      toast.success("Річ видалено.");
       navigate("/items");
     } catch (err) {
       const message = getErrorMessage(err);
@@ -108,8 +109,8 @@ export function ItemDetailsPage() {
   const selectItemImage = (event) => {
     const file = event.target.files?.[0];
     if ((item.images?.length || 0) >= MAX_ITEM_IMAGES) {
-      setError("Maximum 5 images per item");
-      toast.error("Maximum 5 images per item");
+      setError("Максимум 5 фото для однієї речі");
+      toast.error("Максимум 5 фото для однієї речі");
       event.target.value = "";
       return;
     }
@@ -140,11 +141,11 @@ export function ItemDetailsPage() {
           );
         } catch (uploadError) {
           setError(
-            `Item details were saved, but image upload failed: ${getErrorMessage(
+            `Деталі речі збережено, але фото не завантажилося: ${getErrorMessage(
               uploadError
             )}`
           );
-          toast.error(`Image upload failed: ${getErrorMessage(uploadError)}`);
+          toast.error(`Не вдалося завантажити фото: ${getErrorMessage(uploadError)}`);
           await loadItem();
           return;
         }
@@ -156,10 +157,10 @@ export function ItemDetailsPage() {
       setImageFile(null);
       setImagePreview("");
       if (imageFile && refreshedItem?.images?.[0]?.image_url) {
-        toast.success("Item updated successfully.");
-        toast.success("Image uploaded successfully.");
+        toast.success("Річ оновлено.");
+        toast.success("Фото завантажено.");
       } else {
-        toast.success("Item updated successfully.");
+        toast.success("Річ оновлено.");
       }
     } catch (err) {
       const message = getErrorMessage(err);
@@ -170,8 +171,8 @@ export function ItemDetailsPage() {
     }
   };
 
-  if (loading) return <LoadingState label="Loading item..." />;
-  if (!item) return <EmptyState message="Item not found." />;
+  if (loading) return <LoadingState label="Завантаження речі..." />;
+  if (!item) return <EmptyState message="Річ не знайдено." />;
 
   const isOwner = user?.id === item.user_id;
   const isAvailable = item.status === "available";
@@ -225,9 +226,9 @@ export function ItemDetailsPage() {
       />
       <ConfirmModal
         open={deleteConfirmOpen}
-        title="Delete item"
-        message={`Delete "${item.title}"? This action cannot be undone.`}
-        confirmLabel="Delete item"
+        title="Видалити річ"
+        message={`Видалити "${item.title}"? Цю дію неможливо скасувати.`}
+        confirmLabel="Видалити річ"
         loading={deleting}
         onCancel={() => setDeleteConfirmOpen(false)}
         onConfirm={deleteItem}
@@ -253,13 +254,13 @@ function ItemImageGallery({ images, title, selectedIndex, onSelect }) {
 
   if (!hasMultipleImages) {
     return (
-      <section className="self-start overflow-hidden rounded-lg border border-line bg-white shadow-soft">
+      <section className="self-start overflow-hidden rounded-2xl border border-line bg-white shadow-soft">
         <div className="relative aspect-[4/3] bg-slate-100">
           {hasImages ? (
             <img src={activeImage} alt={title} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-muted">
-              No image available
+              Фото відсутнє
             </div>
           )}
         </div>
@@ -268,7 +269,7 @@ function ItemImageGallery({ images, title, selectedIndex, onSelect }) {
   }
 
   return (
-    <section className="self-start overflow-hidden rounded-lg border border-line bg-white shadow-soft">
+    <section className="self-start overflow-hidden rounded-2xl border border-line bg-white shadow-soft">
       <div className="relative aspect-[4/3] bg-slate-100">
         <img src={activeImage} alt={title} className="h-full w-full object-cover" />
 
@@ -278,14 +279,14 @@ function ItemImageGallery({ images, title, selectedIndex, onSelect }) {
             onClick={showPrevious}
             className="rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-ink shadow-soft hover:bg-white"
           >
-            Previous
+            Назад
           </button>
           <button
             type="button"
             onClick={showNext}
             className="rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-ink shadow-soft hover:bg-white"
           >
-            Next
+            Далі
           </button>
         </div>
       </div>
@@ -296,10 +297,10 @@ function ItemImageGallery({ images, title, selectedIndex, onSelect }) {
             key={`${url}-${index}`}
             type="button"
             onClick={() => onSelect(index)}
-            className={`h-20 w-24 shrink-0 overflow-hidden rounded-md border bg-slate-100 ${
+            className={`h-20 w-24 shrink-0 overflow-hidden rounded-xl border bg-slate-100 ${
               activeIndex === index ? "border-brand ring-2 ring-brand/20" : "border-line"
             }`}
-            aria-label={`Show item image ${index + 1}`}
+            aria-label={`Показати фото речі ${index + 1}`}
           >
             <img src={url} alt={`${title} ${index + 1}`} className="h-full w-full object-cover" />
           </button>
@@ -321,83 +322,83 @@ function ItemDetailsView({
 }) {
   return (
     <div className="space-y-4">
-      <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+      <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold">{item.title}</h1>
-            <p className="mt-1 text-sm text-muted">Listed in {item.city}</p>
+            <h1 className="text-2xl font-bold text-gray-900">{item.title}</h1>
+            <p className="mt-1 text-sm text-muted">Місто: {item.city}</p>
           </div>
           <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand">
-            {item.status}
+            {statusLabel(item.status)}
           </span>
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <InfoTile label="Category" value={item.category} />
-          <InfoTile label="Condition" value={item.condition} />
-          <InfoTile label="City" value={item.city} />
+          <InfoTile label="Категорія" value={categoryLabel(item.category)} />
+          <InfoTile label="Стан" value={conditionLabel(item.condition)} />
+          <InfoTile label="Місто" value={item.city} />
         </div>
       </section>
 
-      <InfoCard title="Description">
+      <InfoCard title="Опис">
         <p className="whitespace-pre-wrap text-sm leading-6 text-ink">
-          {item.description || "No description provided."}
+          {item.description || "Опис не вказано."}
         </p>
       </InfoCard>
 
-      <InfoCard title="Desired Exchange">
+      <InfoCard title="Бажаний обмін">
         <p className="text-sm leading-6 text-ink">
-          {item.desired_exchange || "Open to offers"}
+          {item.desired_exchange || "Відкрито до пропозицій"}
         </p>
       </InfoCard>
 
-      <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
-        <h2 className="text-base font-semibold">Exchange Actions</h2>
+      <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
+        <h2 className="text-base font-semibold">Дії обміну</h2>
         <p className="mt-1 text-sm text-muted">
           {item.status === "exchanged"
-            ? "This item has already been exchanged and can no longer be edited."
+            ? "Цю річ уже обміняно, тому її більше не можна редагувати."
             : isOwner
-              ? "Manage this listing or add new photos from edit mode."
+              ? "Керуйте оголошенням або додавайте нові фото в режимі редагування."
               : isAuthenticated
-                ? "Start a request with one of your available items."
-                : "Log in to create an exchange request for this item."}
+                ? "Створіть запит, запропонувавши одну зі своїх доступних речей."
+                : "Увійдіть, щоб створити запит на обмін для цієї речі."}
         </p>
         {isAvailable ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {isOwner ? (
               <>
                 <Button variant="secondary" onClick={onEdit}>
-                  Edit
+                  Редагувати
                 </Button>
                 <Button variant="danger" onClick={onDelete}>
-                  Delete
+                  Видалити
                 </Button>
               </>
             ) : isAuthenticated ? (
-              <Button onClick={onCreateRequest}>Create exchange request</Button>
+              <Button onClick={onCreateRequest}>Створити запит на обмін</Button>
             ) : (
               <Button type="button" variant="secondary" onClick={onLogin}>
-                Log in to request
+                Увійти, щоб створити запит
               </Button>
             )}
           </div>
         ) : item.status === "exchanged" ? (
-          <div className="mt-4 rounded-md bg-surface p-3 text-sm text-muted">
-            This item has already been exchanged and can no longer be edited.
+          <div className="mt-4 rounded-2xl bg-surface p-3 text-sm text-muted">
+            Цю річ уже обміняно, тому її більше не можна редагувати.
           </div>
         ) : isOwner ? (
-          <div className="mt-4 rounded-md bg-surface p-3 text-sm text-muted">
-            This item is not available for editing or exchange actions.
+          <div className="mt-4 rounded-2xl bg-surface p-3 text-sm text-muted">
+            Ця річ недоступна для редагування або дій обміну.
           </div>
         ) : (
-          <div className="mt-4 rounded-md bg-surface p-3 text-sm text-muted">
-            This item is not available for exchange requests.
+          <div className="mt-4 rounded-2xl bg-surface p-3 text-sm text-muted">
+            Ця річ недоступна для запитів на обмін.
           </div>
         )}
       </section>
 
-      <section className="rounded-lg border border-teal-100 bg-teal-50/60 p-4 text-sm text-teal-900">
-        AI recommendations are based on desired exchange, category, condition and city.
+      <section className="rounded-2xl border border-teal-100 bg-teal-50/60 p-4 text-sm text-teal-900">
+        AI-рекомендації базуються на бажаному обміні, категорії, стані та місті.
       </section>
     </div>
   );
@@ -405,16 +406,16 @@ function ItemDetailsView({
 
 function InfoTile({ label, value }) {
   return (
-    <div className="rounded-md bg-surface p-3">
+    <div className="rounded-2xl bg-surface p-3">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-1 text-sm font-semibold">{value || "Not specified"}</p>
+      <p className="mt-1 text-sm font-semibold">{value || "Не вказано"}</p>
     </div>
   );
 }
 
 function InfoCard({ title, children }) {
   return (
-    <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+    <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
       <h2 className="text-base font-semibold">{title}</h2>
       <div className="mt-3">{children}</div>
     </section>
@@ -435,21 +436,21 @@ function EditItemForm({
   const update = (field, value) => onChange({ ...form, [field]: value });
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-line bg-white p-5 shadow-soft">
+    <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-line bg-white p-5 shadow-soft">
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label>Title</label>
+          <label>Назва</label>
           <input value={form.title} onChange={(event) => update("title", event.target.value)} />
         </div>
         <div>
-          <label>Category</label>
+          <label>Категорія</label>
           <select value={form.category} onChange={(event) => update("category", event.target.value)}>
             {!ITEM_CATEGORIES.includes(form.category) ? (
-              <option value={form.category}>{form.category || "Select category"}</option>
+              <option value={form.category}>{categoryLabel(form.category) || "Оберіть категорію"}</option>
             ) : null}
-            {ITEM_CATEGORIES.map((category) => (
-              <option key={category} value={category}>
-                {category}
+            {ITEM_CATEGORY_OPTIONS.map((category) => (
+              <option key={category.value} value={category.value}>
+                {category.label}
               </option>
             ))}
           </select>
@@ -457,46 +458,46 @@ function EditItemForm({
       </div>
 
       <div>
-        <label>Description</label>
+        <label>Опис</label>
         <textarea rows="4" value={form.description} onChange={(event) => update("description", event.target.value)} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <div>
-          <label>Condition</label>
+          <label>Стан</label>
           <select value={form.condition} onChange={(event) => update("condition", event.target.value)}>
-            <option value="new">New</option>
-            <option value="like_new">Like new</option>
-            <option value="used">Used</option>
-            <option value="refurbished">Refurbished</option>
-            <option value="broken">Broken</option>
+            <option value="new">{conditionLabel("new")}</option>
+            <option value="like_new">{conditionLabel("like_new")}</option>
+            <option value="used">{conditionLabel("used")}</option>
+            <option value="refurbished">{conditionLabel("refurbished")}</option>
+            <option value="broken">{conditionLabel("broken")}</option>
           </select>
         </div>
         <div>
-          <label>City</label>
+          <label>Місто</label>
           <input value={form.city} onChange={(event) => update("city", event.target.value)} />
         </div>
         <div>
-          <label>Desired exchange</label>
+          <label>Бажаний обмін</label>
           <input value={form.desired_exchange} onChange={(event) => update("desired_exchange", event.target.value)} />
         </div>
       </div>
 
-      <section className="rounded-md bg-surface p-4">
-        <label>Optional new item image</label>
+      <section className="rounded-2xl bg-surface p-4">
+        <label>Додаткове фото речі</label>
         <p className="mt-1 text-sm text-muted">
-          Upload up to {MAX_ITEM_IMAGES} images. JPG, PNG or WEBP. Max 5MB each.
+          Завантажте до {MAX_ITEM_IMAGES} фото. JPG, PNG або WEBP. Максимум 5MB для кожного.
         </p>
         <p className="mt-1 text-sm font-medium text-brand">
-          {existingImageCount} / {MAX_ITEM_IMAGES} images uploaded
+          {existingImageCount} / {MAX_ITEM_IMAGES} фото завантажено
         </p>
         <div className="mt-3 grid gap-4 md:grid-cols-[160px_1fr] md:items-center">
-          <div className="aspect-[4/3] overflow-hidden rounded-md bg-slate-100">
+          <div className="aspect-[4/3] overflow-hidden rounded-xl bg-slate-100">
             {imagePreview ? (
-              <img src={imagePreview} alt="Selected item" className="h-full w-full object-cover" />
+              <img src={imagePreview} alt="Вибрана річ" className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-muted">
-                No image selected
+                Фото не вибрано
               </div>
             )}
           </div>
@@ -507,9 +508,9 @@ function EditItemForm({
               onChange={onSelectImage}
               disabled={saving || existingImageCount >= MAX_ITEM_IMAGES}
             />
-            {imageFile ? <p className="mt-2 text-sm text-muted">Selected: {imageFile.name}</p> : null}
+            {imageFile ? <p className="mt-2 text-sm text-muted">Вибрано: {imageFile.name}</p> : null}
             {existingImageCount >= MAX_ITEM_IMAGES ? (
-              <p className="mt-2 text-sm text-muted">Image limit reached.</p>
+              <p className="mt-2 text-sm text-muted">Досягнуто ліміт фото.</p>
             ) : null}
           </div>
         </div>
@@ -517,10 +518,10 @@ function EditItemForm({
 
       <div className="flex gap-2">
         <Button type="submit" disabled={saving}>
-          {saving ? "Saving..." : "Save changes"}
+          {saving ? "Збереження..." : "Зберегти зміни"}
         </Button>
         <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>
-          Cancel
+          Скасувати
         </Button>
       </div>
     </form>

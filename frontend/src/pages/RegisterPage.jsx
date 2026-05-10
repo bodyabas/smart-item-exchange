@@ -29,7 +29,7 @@ export function RegisterPage() {
     event.preventDefault();
     setError("");
     if (form.password !== form.confirm_password) {
-      const message = "Passwords do not match";
+      const message = "Паролі не збігаються";
       setError(message);
       toast.error(message);
       return;
@@ -39,7 +39,7 @@ export function RegisterPage() {
     try {
       const { confirm_password, ...payload } = form;
       await register(payload);
-      toast.success("Account created successfully.");
+      toast.success("Акаунт створено.");
       navigate("/dashboard");
     } catch (err) {
       const message = getErrorMessage(err);
@@ -61,34 +61,34 @@ export function RegisterPage() {
     form.confirm_password && form.password !== form.confirm_password;
 
   return (
-    <form onSubmit={submit} className="space-y-4 rounded-lg border border-line bg-white p-6 shadow-soft">
+    <form onSubmit={submit} className="space-y-5 rounded-2xl border border-line bg-white p-6 shadow-soft">
       <div>
-        <h1 className="text-xl font-semibold">Create account</h1>
-        <p className="text-sm text-muted">Start listing and exchanging items.</p>
+        <h1 className="text-xl font-bold text-gray-900">Створити акаунт</h1>
+        <p className="text-sm text-muted">Додавайте речі та обмінюйтеся ними.</p>
       </div>
       <ErrorState message={error} />
       <div>
-        <label>Name</label>
+        <label>Ім'я</label>
         <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
       </div>
       <div>
-        <label>Email</label>
+        <label>Електронна пошта</label>
         <input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required />
       </div>
       <PasswordField
-        label="Password"
+        label="Пароль"
         value={form.password}
         autoComplete="new-password"
         onChange={(event) => setForm({ ...form, password: event.target.value })}
       />
       <PasswordStrengthIndicator strength={passwordStrength} />
       <p className="text-sm text-muted">
-        Password must be at least 8 characters and include letters and numbers.
-        Strong passwords use at least 10 characters with uppercase, lowercase,
-        number, and special character.
+        Пароль має містити щонайменше 8 символів, літери та цифри.
+        Надійний пароль має щонайменше 10 символів, великі й малі літери,
+        цифру та спеціальний символ.
       </p>
       <PasswordField
-        label="Confirm password"
+        label="Підтвердіть пароль"
         value={form.confirm_password}
         autoComplete="new-password"
         onChange={(event) =>
@@ -96,15 +96,15 @@ export function RegisterPage() {
         }
       />
       {passwordsDoNotMatch ? (
-        <p className="text-sm font-medium text-red-600">Passwords do not match</p>
+        <p className="text-sm font-medium text-red-600">Паролі не збігаються</p>
       ) : null}
       <TurnstileWidget
         key={captchaResetKey}
         onToken={(token) => setForm((currentForm) => ({ ...currentForm, captcha_token: token }))}
         onExpire={() => setForm((currentForm) => ({ ...currentForm, captcha_token: "" }))}
         onError={() => {
-          setError("CAPTCHA failed to load. Please try again.");
-          toast.error("CAPTCHA failed to load. Please try again.");
+          setError("CAPTCHA не завантажилася. Спробуйте ще раз.");
+          toast.error("CAPTCHA не завантажилася. Спробуйте ще раз.");
         }}
       />
       <Button
@@ -112,13 +112,13 @@ export function RegisterPage() {
         className="w-full"
         disabled={loading || (turnstileSiteKey && !form.captcha_token)}
       >
-        {loading ? "Creating..." : "Create account"}
+        {loading ? "Створення..." : "Створити акаунт"}
       </Button>
       <Button type="button" variant="secondary" className="w-full" onClick={startGoogleLogin}>
-        Continue with Google
+        Продовжити з Google
       </Button>
       <p className="text-center text-sm text-muted">
-        Already registered? <Link to="/login" className="font-medium text-brand">Log in</Link>
+        Уже зареєстровані? <Link to="/login" className="font-medium text-brand">Увійти</Link>
       </p>
     </form>
   );
@@ -139,26 +139,26 @@ function getPasswordStrength(password) {
     hasNumber &&
     hasSpecial
   ) {
-    return "Strong";
+    return "Надійний";
   }
 
   if (hasMinLength && hasLetter && hasNumber) {
-    return "Medium";
+    return "Середній";
   }
 
-  return "Weak";
+  return "Слабкий";
 }
 
 function PasswordStrengthIndicator({ strength }) {
   const styles = {
-    Weak: "bg-red-50 text-red-700 border-red-200",
-    Medium: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    Strong: "bg-green-50 text-green-700 border-green-200",
+    Слабкий: "bg-red-50 text-red-700 border-red-200",
+    Середній: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    Надійний: "bg-green-50 text-green-700 border-green-200",
   };
 
   return (
-    <div className={`rounded-md border p-3 text-sm font-medium ${styles[strength]}`}>
-      Password strength: {strength}
+    <div className={`rounded-xl border p-3 text-sm font-medium ${styles[strength]}`}>
+      Надійність пароля: {strength}
     </div>
   );
 }

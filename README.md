@@ -29,6 +29,7 @@ flask, react, postgresql, pgvector, docker, ai, marketplace
 - Google users can set a local password later from Profile
 - Login/register rate limiting and expiring JWT access tokens
 - Register password strength indicator and confirm password validation
+- Ukrainian-language frontend UI
 - Public item browsing and protected marketplace dashboard
 - User profile management with avatar file upload
 - Item CRUD with local multi-image uploads
@@ -309,7 +310,8 @@ Supported sort values:
 Invalid sort values fall back to `newest`.
 
 Categories are selected from a fixed list in the frontend and validated by the
-backend:
+backend. The UI displays Ukrainian category labels, while the backend still
+stores stable English category values for compatibility:
 
 - `Electronics`
 - `Clothing & Accessories`
@@ -347,7 +349,7 @@ Allowed image types:
 Maximum file size is 5MB per image. The UI shows:
 
 ```text
-Upload up to 5 images. JPG, PNG or WEBP. Max 5MB each.
+Завантажте до 5 фото. JPG, PNG або WEBP. Максимум 5MB для кожного.
 ```
 
 Item images are stored locally under:
@@ -411,9 +413,9 @@ Allowed `cash_adjustment_direction` values:
 
 The frontend displays these as user-friendly options:
 
-- `None`
-- `I pay`
-- `Other user pays`
+- `Немає`
+- `Я доплачую`
+- `Інший користувач доплачує`
 
 Counter-offer forms prefill the latest cash amount and payer direction. The
 message field starts empty for each new counter-offer, and the frontend prevents
@@ -423,11 +425,11 @@ not change.
 The frontend displays requests as product interactions instead of technical
 database labels:
 
-- `Outgoing request`
-- `Incoming request`
-- item flow such as `Ball -> iPhone 12`
-- active requests show `Waiting for response` when the other user needs to act
-- tabs for `All`, `Incoming`, and `Outgoing`
+- `Вихідний запит`
+- `Вхідний запит`
+- item flow such as `М'яч -> iPhone 12`
+- active requests show `Очікує відповіді` when the other user needs to act
+- tabs for `Усі`, `Вхідні`, and `Вихідні`
 
 ### AI Recommendations
 
@@ -453,17 +455,26 @@ final_score =
   0.05 * freshness_score
 ```
 
+`category_relevance` combines desired-exchange keyword relevance with direct
+category matching. If the source and recommended items have the same category,
+the category relevance component is at least `0.8`.
+
+Weak cross-category matches are penalized. If category relevance, desired
+exchange similarity, and mutual interest are all low, the final score is
+reduced to avoid recommending unrelated items just because city, condition, or
+freshness are strong.
+
 The recommendation UI shows the score as a percentage with a quality label:
 
-- `>= 75%`: Excellent match
-- `>= 55%`: Good match
-- `>= 35%`: Possible match
-- otherwise: Low relevance
+- `>= 75%`: Відмінний збіг
+- `>= 55%`: Хороший збіг
+- `>= 35%`: Можливий збіг
+- otherwise: Низька релевантність
 
 Dashboard recommendations are shown in a carousel: 2 cards per view on desktop
-and 1 card per view on mobile. Each card shows a simplified "Why recommended?"
+and 1 card per view on mobile. Each card shows a simplified `Чому рекомендовано?`
 section and hides the detailed score breakdown until the user clicks
-`Show details`.
+`Показати деталі`.
 
 ## Frontend Routes
 
@@ -487,9 +498,9 @@ Admin-only route:
 
 - `/admin`
 
-When logged out, the navbar shows `Items`, `Login`, and `Register`. When logged
-in, it shows `Dashboard`, `Items`, `Add Item`, `Exchange Requests`, `Profile`,
-and `Logout`. Admin users also see `Admin`; non-admin users are redirected away
+When logged out, the navbar shows `Речі`, `Увійти`, and `Реєстрація`. When logged
+in, it shows `Панель`, `Речі`, `Додати річ`, `Запити на обмін`, `Профіль`,
+and `Вийти`. Admin users also see `Адмін`; non-admin users are redirected away
 from `/admin` on the frontend and still receive `403` from protected admin API
 endpoints.
 

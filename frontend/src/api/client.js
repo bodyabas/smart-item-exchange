@@ -19,13 +19,20 @@ export function getErrorMessage(error) {
   const message =
     error?.response?.data?.message ||
     Object.values(error?.response?.data?.errors || {})?.flat()?.[0] ||
-    "Something went wrong";
+    "Щось пішло не так";
 
   if (
     typeof message === "string" &&
     message.includes("cash_adjustment_direction")
   ) {
-    return "Please choose who pays the cash adjustment.";
+    return "Будь ласка, виберіть, хто доплачує різницю.";
+  }
+
+  if (
+    typeof message === "string" &&
+    message.includes("This account was created using Google")
+  ) {
+    return "Цей акаунт створено через Google. Увійдіть через Google або встановіть пароль у профілі.";
   }
 
   return message;

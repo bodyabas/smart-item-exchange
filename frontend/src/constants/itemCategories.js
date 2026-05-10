@@ -13,3 +13,19 @@ export const ITEM_CATEGORIES = [
   "Pets",
   "Other",
 ];
+
+export const ITEM_CATEGORY_OPTIONS = [
+  { value: "Electronics", label: "Електроніка" },
+  { value: "Clothing & Accessories", label: "Одяг та аксесуари" },
+  { value: "Home & Furniture", label: "Дім та меблі" },
+  { value: "Books & Education", label: "Книги та освіта" },
+  { value: "Sports & Outdoor", label: "Спорт і активний відпочинок" },
+  { value: "Hobbies & Entertainment", label: "Хобі та розваги" },
+  { value: "Collectibles", label: "Колекційні речі" },
+  { value: "Kids & Toys", label: "Діти та іграшки" },
+  { value: "Beauty & Health", label: "Краса та здоров'я" },
+  { value: "Tools & DIY", label: "Інструменти та DIY" },
+  { value: "Car & Auto", label: "Авто" },
+  { value: "Pets", label: "Тварини" },
+  { value: "Other", label: "Інше" },
+];

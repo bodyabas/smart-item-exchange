@@ -6,7 +6,7 @@ export function PasswordField({ label, value, onChange, autoComplete }) {
   return (
     <div>
       <label>{label}</label>
-      <div className="flex rounded-md border border-line bg-white focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
+      <div className="flex rounded-xl border border-line bg-white focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
         <input
           type={visible ? "text" : "password"}
           value={value}
@@ -20,7 +20,7 @@ export function PasswordField({ label, value, onChange, autoComplete }) {
           onClick={() => setVisible((current) => !current)}
           className="shrink-0 px-3 text-sm font-medium text-muted hover:text-ink"
         >
-          {visible ? "Hide" : "Show"}
+          {visible ? "Приховати" : "Показати"}
         </button>
       </div>
     </div>

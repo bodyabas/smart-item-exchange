@@ -8,7 +8,7 @@ export function OAuthSuccessPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { loadUser, saveToken } = useAuth();
-  const [message, setMessage] = useState("Completing Google login...");
+  const [message, setMessage] = useState("Завершення входу через Google...");
 
   useEffect(() => {
     async function completeLogin() {
@@ -23,7 +23,7 @@ export function OAuthSuccessPage() {
         await loadUser();
         navigate("/dashboard", { replace: true });
       } catch {
-        setMessage("Google login failed. Redirecting...");
+        setMessage("Не вдалося увійти через Google. Перенаправлення...");
         navigate("/login?error=google_auth_failed", { replace: true });
       }
     }

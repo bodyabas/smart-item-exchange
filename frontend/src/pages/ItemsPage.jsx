@@ -5,7 +5,7 @@ import { Button } from "../components/Button.jsx";
 import { ItemCard } from "../components/ItemCard.jsx";
 import { PageHeader } from "../components/PageHeader.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
-import { ITEM_CATEGORIES } from "../constants/itemCategories.js";
+import { ITEM_CATEGORY_OPTIONS } from "../constants/itemCategories.js";
 import { useToast } from "../context/ToastContext.jsx";
 
 const initialFilters = {
@@ -109,10 +109,10 @@ export function ItemsPage() {
 
   return (
     <div>
-      <PageHeader title="Available items" subtitle="Browse listings ready for exchange." />
-      <form onSubmit={submit} className="mb-6 grid gap-3 rounded-lg border border-line bg-white p-4 shadow-soft md:grid-cols-6">
+      <PageHeader title="Доступні речі" subtitle="Переглядайте речі, готові до обміну." />
+      <form onSubmit={submit} className="mb-8 grid gap-3 rounded-2xl border border-line bg-white p-4 shadow-soft md:grid-cols-6">
         <input
-          placeholder="search"
+          placeholder="Пошук"
           value={filters.search}
           onChange={(event) => setFilters({ ...filters, search: event.target.value })}
         />
@@ -120,38 +120,38 @@ export function ItemsPage() {
           value={filters.category}
           onChange={(event) => setFilters({ ...filters, category: event.target.value })}
         >
-          <option value="">All categories</option>
-          {ITEM_CATEGORIES.map((category) => (
-            <option key={category} value={category}>
-              {category}
+          <option value="">Усі категорії</option>
+          {ITEM_CATEGORY_OPTIONS.map((category) => (
+            <option key={category.value} value={category.value}>
+              {category.label}
             </option>
           ))}
         </select>
         <input
-          placeholder="city"
+          placeholder="Місто"
           value={filters.city}
           onChange={(event) => setFilters({ ...filters, city: event.target.value })}
         />
         <input
-          placeholder="condition"
+          placeholder="Стан"
           value={filters.condition}
           onChange={(event) => setFilters({ ...filters, condition: event.target.value })}
         />
         <select value={sort} onChange={changeSort}>
-          <option value="newest">Newest</option>
-          <option value="condition">Condition</option>
-          <option value="city">City</option>
+          <option value="newest">Найновіші</option>
+          <option value="condition">За станом</option>
+          <option value="city">За містом</option>
         </select>
         <button
-          className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
           disabled={loading}
         >
-          {loading ? "Applying..." : "Apply filters"}
+          {loading ? "Застосування..." : "Застосувати фільтри"}
         </button>
       </form>
       <ErrorState message={error} />
       {loading ? (
-        <LoadingState label="Loading items..." />
+        <LoadingState label="Завантаження речей..." />
       ) : items.length ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -166,7 +166,7 @@ export function ItemsPage() {
           />
         </>
       ) : (
-        <EmptyState message="No items found. Try changing the filters or search text." />
+        <EmptyState message="Речей не знайдено. Спробуйте змінити фільтри або текст пошуку." />
       )}
     </div>
   );
@@ -176,11 +176,11 @@ function PaginationControls({ page, totalPages, totalItems, loading, onPageChang
   const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
 
   return (
-    <div className="mt-6 flex flex-col gap-3 rounded-lg border border-line bg-white p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between">
+    <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-line bg-white p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-muted">
-        Page <span className="font-semibold text-ink">{page}</span> of{" "}
+        Сторінка <span className="font-semibold text-ink">{page}</span> з{" "}
         <span className="font-semibold text-ink">{totalPages}</span>
-        {" "}({totalItems} items)
+        {" "}(усього {totalItems})
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -189,7 +189,7 @@ function PaginationControls({ page, totalPages, totalItems, loading, onPageChang
           disabled={loading || page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
-          Previous
+          Назад
         </Button>
         <div className="flex flex-wrap gap-1">
           {pages.map((pageNumber) => (
@@ -198,7 +198,7 @@ function PaginationControls({ page, totalPages, totalItems, loading, onPageChang
               type="button"
               disabled={loading}
               onClick={() => onPageChange(pageNumber)}
-              className={`h-9 min-w-9 rounded-md px-3 text-sm font-semibold ${
+              className={`h-9 min-w-9 rounded-xl px-3 text-sm font-semibold ${
                 pageNumber === page
                   ? "bg-brand text-white"
                   : "border border-line bg-white text-ink hover:bg-surface"
@@ -214,7 +214,7 @@ function PaginationControls({ page, totalPages, totalItems, loading, onPageChang
           disabled={loading || page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >
-          Next
+          Далі
         </Button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 export function getCashDirectionOptions(currentUserId, senderId, receiverId) {
   return [
-    { value: "none", label: "None" },
+    { value: "none", label: "Немає" },
     {
       value: "sender_pays",
       label: cashDirectionLabel("sender_pays", currentUserId, senderId, receiverId),
@@ -13,17 +13,17 @@ export function getCashDirectionOptions(currentUserId, senderId, receiverId) {
 }
 
 export function cashDirectionLabel(direction, currentUserId, senderId, receiverId) {
-  if (direction === "none") return "None";
+  if (direction === "none") return "Немає";
   const currentUserPays =
     (direction === "sender_pays" && currentUserId === senderId) ||
     (direction === "receiver_pays" && currentUserId === receiverId);
-  return currentUserPays ? "I pay" : "Other user pays";
+  return currentUserPays ? "Я доплачую" : "Інший користувач доплачує";
 }
 
 export function validateCashAdjustment(amount, direction) {
   const numericAmount = Number(amount || 0);
   if (numericAmount > 0 && (!direction || direction === "none")) {
-    return "Please choose who pays the cash adjustment.";
+    return "Будь ласка, виберіть, хто доплачує різницю.";
   }
   return "";
 }
@@ -37,9 +37,9 @@ export function formatCashAdjustment(requestOrOffer) {
   const direction = requestOrOffer?.cash_adjustment_direction || "none";
 
   if (!amount || direction === "none") {
-    return "No cash adjustment";
+    return "Без доплати";
   }
 
-  const payer = direction === "sender_pays" ? "Sender" : "Receiver";
-  return `${payer} pays ${amount}`;
+  const payer = direction === "sender_pays" ? "Відправник" : "Отримувач";
+  return `${payer} доплачує ${amount}`;
 }

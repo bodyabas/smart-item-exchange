@@ -28,7 +28,7 @@ export function AdminProtectedRoute() {
   }, [isAuthenticated, user]);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (loading) return <LoadingState label="Checking admin access..." />;
+  if (loading) return <LoadingState label="Перевірка доступу адміністратора..." />;
   if (user?.role !== "admin") return <Navigate to="/dashboard" replace />;
 
   return <Outlet />;

@@ -4,6 +4,7 @@ import { api, getErrorMessage } from "../api/client.js";
 import { Button } from "../components/Button.jsx";
 import { PageHeader } from "../components/PageHeader.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateMessage.jsx";
+import { statusLabel, roleLabel } from "../utils/labels.js";
 
 export function AdminPage() {
   const [users, setUsers] = useState([]);
@@ -66,27 +67,27 @@ export function AdminPage() {
     }
   };
 
-  if (loading) return <LoadingState label="Loading admin panel..." />;
+  if (loading) return <LoadingState label="Завантаження адмін-панелі..." />;
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Admin panel"
-        subtitle="Manage users, listings and exchange request visibility."
+        title="Адмін-панель"
+        subtitle="Керуйте користувачами, оголошеннями та запитами на обмін."
       />
       <ErrorState message={error} />
 
-      <AdminSection title="Users">
+      <AdminSection title="Користувачі">
         {users.length ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-xs uppercase text-muted">
                 <tr>
                   <th className="py-2">ID</th>
-                  <th>Name</th>
+                  <th>Ім'я</th>
                   <th>Email</th>
-                  <th>Provider</th>
-                  <th>Role</th>
+                  <th>Провайдер</th>
+                  <th>Роль</th>
                 </tr>
               </thead>
               <tbody>
@@ -102,8 +103,8 @@ export function AdminPage() {
                         disabled={actionLoading === `role-${user.id}`}
                         onChange={(event) => changeRole(user.id, event.target.value)}
                       >
-                        <option value="user">user</option>
-                        <option value="admin">admin</option>
+                        <option value="user">{roleLabel("user")}</option>
+                        <option value="admin">{roleLabel("admin")}</option>
                       </select>
                     </td>
                   </tr>
@@ -112,22 +113,22 @@ export function AdminPage() {
             </table>
           </div>
         ) : (
-          <EmptyState message="No users found." />
+          <EmptyState message="Користувачів не знайдено." />
         )}
       </AdminSection>
 
-      <AdminSection title="Items">
+      <AdminSection title="Речі">
         {items.length ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-xs uppercase text-muted">
                 <tr>
                   <th className="py-2">ID</th>
-                  <th>Title</th>
-                  <th>Owner</th>
-                  <th>Status</th>
-                  <th>City</th>
-                  <th>Action</th>
+                  <th>Назва</th>
+                  <th>Власник</th>
+                  <th>Статус</th>
+                  <th>Місто</th>
+                  <th>Дія</th>
                 </tr>
               </thead>
               <tbody>
@@ -136,7 +137,7 @@ export function AdminPage() {
                     <td className="py-3">{item.id}</td>
                     <td>{item.title}</td>
                     <td>{item.user_id}</td>
-                    <td>{item.status}</td>
+                    <td>{statusLabel(item.status)}</td>
                     <td>{item.city}</td>
                     <td>
                       <Button
@@ -145,8 +146,8 @@ export function AdminPage() {
                         onClick={() => deleteItem(item.id)}
                       >
                         {actionLoading === `delete-${item.id}`
-                          ? "Deleting..."
-                          : "Delete"}
+                          ? "Видалення..."
+                          : "Видалити"}
                       </Button>
                     </td>
                   </tr>
@@ -155,22 +156,22 @@ export function AdminPage() {
             </table>
           </div>
         ) : (
-          <EmptyState message="No items found." />
+          <EmptyState message="Речей не знайдено." />
         )}
       </AdminSection>
 
-      <AdminSection title="Exchange requests">
+      <AdminSection title="Запити на обмін">
         {requests.length ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-xs uppercase text-muted">
                 <tr>
                   <th className="py-2">ID</th>
-                  <th>Sender</th>
-                  <th>Receiver</th>
-                  <th>Offered</th>
-                  <th>Requested</th>
-                  <th>Status</th>
+                  <th>Відправник</th>
+                  <th>Отримувач</th>
+                  <th>Пропонує</th>
+                  <th>Запитує</th>
+                  <th>Статус</th>
                 </tr>
               </thead>
               <tbody>
@@ -181,14 +182,14 @@ export function AdminPage() {
                     <td>{request.receiver_id}</td>
                     <td>{request.offered_item_id}</td>
                     <td>{request.requested_item_id}</td>
-                    <td>{request.status}</td>
+                    <td>{statusLabel(request.status)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <EmptyState message="No exchange requests found." />
+          <EmptyState message="Запитів на обмін не знайдено." />
         )}
       </AdminSection>
     </div>
@@ -197,7 +198,7 @@ export function AdminPage() {
 
 function AdminSection({ title, children }) {
   return (
-    <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
+    <section className="rounded-2xl border border-line bg-white p-5 shadow-soft">
       <h2 className="mb-4 text-lg font-semibold">{title}</h2>
       {children}
     </section>

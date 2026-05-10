@@ -70,11 +70,11 @@ export function ProfilePage() {
       await api.put("/users/me", form);
       if (avatarFile) {
         await api.post("/uploads/avatar", buildImageFormData(avatarFile));
-        toast.success("Avatar uploaded successfully.");
+        toast.success("Аватар завантажено.");
       }
       setAvatarFile(null);
       await loadProfile();
-      toast.success("Profile saved.");
+      toast.success("Профіль збережено.");
     } catch (err) {
       const message = getErrorMessage(err);
       setError(message);
@@ -105,7 +105,7 @@ export function ProfilePage() {
       await api.post("/auth/set-password", passwordForm);
       setPasswordForm({ new_password: "" });
       await loadProfile();
-      toast.success("Password has been set successfully.");
+      toast.success("Пароль успішно встановлено.");
     } catch (err) {
       const message = getErrorMessage(err);
       setError(message);
@@ -115,57 +115,57 @@ export function ProfilePage() {
     }
   };
 
-  if (loading) return <LoadingState label="Loading profile..." />;
+  if (loading) return <LoadingState label="Завантаження профілю..." />;
 
   return (
     <div>
       <PageHeader
-        title="Profile"
-        subtitle="Manage your profile and item inventory."
+        title="Профіль"
+        subtitle="Керуйте профілем і своїми речами."
         action={
           <Link to="/items/new">
-            <Button>Add item</Button>
+            <Button>Додати річ</Button>
           </Link>
         }
       />
       <ErrorState message={error} />
 
-      <section className="mb-8 grid gap-5 rounded-lg border border-line bg-white p-5 shadow-soft lg:grid-cols-[auto_1fr]">
+      <section className="mb-8 grid gap-5 rounded-2xl border border-line bg-white p-5 shadow-soft lg:grid-cols-[auto_1fr]">
         <Avatar user={user} name={form.name} avatarUrl={avatarPreview} />
         <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
           <div>
-            <label>Name</label>
+            <label>Ім'я</label>
             <input
               value={form.name}
               onChange={(event) => setForm({ ...form, name: event.target.value })}
             />
           </div>
           <div className="space-y-2">
-            <label>Avatar image</label>
+            <label>Фото профілю</label>
             <input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectAvatar} />
             {avatarFile ? (
-              <p className="text-sm text-muted">Selected: {avatarFile.name}</p>
+              <p className="text-sm text-muted">Вибрано: {avatarFile.name}</p>
             ) : null}
           </div>
           <div className="md:col-span-2">
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save profile"}
+              {saving ? "Збереження..." : "Зберегти профіль"}
             </Button>
           </div>
         </form>
       </section>
 
       {user?.has_password === false ? (
-        <section className="mb-8 rounded-lg border border-line bg-white p-5 shadow-soft">
+        <section className="mb-8 rounded-2xl border border-line bg-white p-5 shadow-soft">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold">Set password</h2>
+            <h2 className="text-lg font-semibold">Встановити пароль</h2>
             <p className="text-sm text-muted">
-              Add a password so you can log in with email and password as well as Google.
+              Додайте пароль, щоб входити через електронну пошту й пароль, а також через Google.
             </p>
           </div>
           <form onSubmit={submitPassword} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
             <PasswordField
-              label="New password"
+              label="Новий пароль"
               value={passwordForm.new_password}
               autoComplete="new-password"
               onChange={(event) =>
@@ -173,23 +173,23 @@ export function ProfilePage() {
               }
             />
             <Button type="submit" disabled={passwordSaving}>
-              {passwordSaving ? "Setting..." : "Set password"}
+              {passwordSaving ? "Збереження..." : "Встановити пароль"}
             </Button>
           </form>
           <p className="mt-3 text-sm text-muted">
-            Use at least 8 characters with at least one letter and one number.
+            Використайте щонайменше 8 символів, одну літеру та одну цифру.
           </p>
         </section>
       ) : null}
 
       <InventorySection
-        title="My available items"
-        emptyMessage="You do not have available items yet."
+        title="Мої доступні речі"
+        emptyMessage="У вас поки немає доступних речей."
         items={availableItems}
       />
       <InventorySection
-        title="My exchanged items"
-        emptyMessage="No exchanged items yet."
+        title="Мої обміняні речі"
+        emptyMessage="Обміняних речей поки немає."
         items={exchangedItems}
       />
     </div>
@@ -209,7 +209,7 @@ function Avatar({ user, name, avatarUrl }) {
       {avatarUrl ? (
         <img
           src={avatarUrl}
-          alt={name || "Profile avatar"}
+          alt={name || "Фото профілю"}
           className="h-28 w-28 rounded-full object-cover"
         />
       ) : (
@@ -228,7 +228,7 @@ function Avatar({ user, name, avatarUrl }) {
 function InventorySection({ title, emptyMessage, items }) {
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+      <h2 className="mb-4 text-xl font-bold text-gray-900">{title}</h2>
       {items.length ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (

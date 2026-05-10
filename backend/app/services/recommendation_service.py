@@ -154,7 +154,7 @@ class RecommendationService:
                 candidate,
             )
             category_relevance = RecommendationService._category_relevance(
-                source_item.desired_exchange,
+                source_item,
                 candidate,
             )
             components = {
@@ -182,6 +182,10 @@ class RecommendationService:
                 + 0.05 * components["condition_score"]
                 + 0.05 * components["freshness_score"]
             )
+            final_score = RecommendationService._apply_weak_match_penalty(
+                final_score,
+                components,
+            )
             recommendations.append(
                 {
                     "source_item": schema.dump(source_item),
@@ -197,6 +201,17 @@ class RecommendationService:
             reverse=True,
         )
         return recommendations[:limit]
+
+    @staticmethod
+    def _apply_weak_match_penalty(final_score, components):
+        weak_exchange_match = components["desired_exchange_similarity"] < 0.4
+        weak_mutual_interest = components["mutual_interest_score"] < 0.4
+        weak_category_match = components["category_relevance"] < 0.2
+
+        if weak_exchange_match and weak_mutual_interest and weak_category_match:
+            return final_score * 0.7
+
+        return final_score
 
     @staticmethod
     def _candidate_rows(source_item):
@@ -313,7 +328,16 @@ class RecommendationService:
         return 0.8
 
     @staticmethod
-    def _category_relevance(desired_exchange, candidate_item):
+    def _category_relevance(source_item, candidate_item):
+        desired_exchange = source_item.desired_exchange
+        same_category_score = (
+            0.8
+            if RecommendationService._exact_match(
+                source_item.category,
+                candidate_item.category,
+            )
+            else 0.0
+        )
         desired_tokens = RecommendationService._expanded_tokens(desired_exchange)
         candidate_text = " ".join(
             part
@@ -327,11 +351,11 @@ class RecommendationService:
         candidate_tokens = RecommendationService._expanded_tokens(candidate_text)
 
         if not desired_tokens or not candidate_tokens:
-            return 0.0
+            return same_category_score
 
         overlap = desired_tokens.intersection(candidate_tokens)
         if not overlap:
-            return 0.0
+            return same_category_score
 
         direct_desired = RecommendationService._tokens(desired_exchange)
         direct_candidate = RecommendationService._tokens(candidate_text)
@@ -341,7 +365,7 @@ class RecommendationService:
         if direct_overlap:
             score += 0.25
 
-        return RecommendationService._round_score(score)
+        return max(same_category_score, RecommendationService._round_score(score))
 
     @staticmethod
     def _expanded_tokens(text):

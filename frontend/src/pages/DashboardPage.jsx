@@ -10,6 +10,7 @@ import { ErrorState, LoadingState } from "../components/StateMessage.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import { formatCashAdjustment } from "../utils/cashAdjustment.js";
+import { categoryLabel, conditionLabel, statusLabel } from "../utils/labels.js";
 
 const activeRequestStatuses = ["pending", "countered"];
 const desktopBreakpoint = 1024;
@@ -128,7 +129,7 @@ export function DashboardPage() {
     setRequestItemsById(Object.fromEntries(pairs));
   };
 
-  if (loading) return <LoadingState label="Loading dashboard..." />;
+  if (loading) return <LoadingState label="Завантаження панелі..." />;
 
   const openRequestModal = (source, item) => {
     setModalState({ open: true, sourceItem: source, requestedItem: item });
@@ -154,25 +155,25 @@ export function DashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title={`Welcome${user?.name ? `, ${user.name}` : ""}`}
-        subtitle="Here are your best exchange opportunities today."
+        title={`Вітаємо${user?.name ? `, ${user.name}` : ""}`}
+        subtitle="Ось ваші найкращі можливості для обміну сьогодні."
       />
       <ErrorState message={error} />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard label="Active items" value={summary.activeItems} />
-        <SummaryCard label="Exchanged items" value={summary.exchangedItems} />
-        <SummaryCard label="Active requests" value={summary.activeRequests} />
+        <SummaryCard label="Активні речі" value={summary.activeItems} />
+        <SummaryCard label="Обміняні речі" value={summary.exchangedItems} />
+        <SummaryCard label="Активні запити" value={summary.activeRequests} />
         <SummaryCard
-          label="Best match score"
+          label="Найкращий збіг"
           value={
             summary.bestMatchScore === null
-              ? "No match"
+              ? "Немає збігу"
               : `${Math.round(Number(summary.bestMatchScore) * 100)}%`
           }
           helper={
             summary.bestMatchScore === null
-              ? "Add listings to unlock matches"
+              ? "Додайте речі, щоб отримати збіги"
               : qualityLabel(summary.bestMatchScore)
           }
         />
@@ -181,18 +182,18 @@ export function DashboardPage() {
       <section>
         <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <SectionHeader
-            title="Top AI Recommendations"
-            text="Browse your best AI-powered exchange matches without leaving the dashboard."
+            title="AI-рекомендації"
+            text="Переглядайте найкращі AI-підібрані обміни прямо на панелі."
           />
           {showCarouselControls ? (
             <div className="flex items-center gap-2">
               <Button variant="secondary" onClick={goToPreviousRecommendations}>
                 <span aria-hidden="true">←</span>
-                <span className="sr-only">Previous recommendations</span>
+                <span className="sr-only">Попередні рекомендації</span>
               </Button>
               <Button variant="secondary" onClick={goToNextRecommendations}>
                 <span aria-hidden="true">→</span>
-                <span className="sr-only">Next recommendations</span>
+                <span className="sr-only">Наступні рекомендації</span>
               </Button>
             </div>
           ) : null}
@@ -214,7 +215,7 @@ export function DashboardPage() {
                   <button
                     key={index}
                     type="button"
-                    aria-label={`Go to recommendation page ${index + 1}`}
+                    aria-label={`Перейти до сторінки рекомендацій ${index + 1}`}
                     onClick={() => setCarouselIndex(index)}
                     className={`h-2.5 rounded-full transition-all ${
                       normalizedCarouselIndex === index
@@ -233,10 +234,10 @@ export function DashboardPage() {
 
       <section>
         <SectionHeader
-          title="Active requests"
-          text="Pending and countered exchange requests that still need attention."
+          title="Активні запити"
+          text="Запити, які очікують відповіді або мають зустрічні пропозиції."
         />
-        <div className="rounded-lg border border-line bg-white p-5 shadow-soft">
+        <div className="rounded-2xl border border-line bg-white p-5 shadow-soft">
           {activeRequests.length ? (
             <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
               {activeRequests.map((request) => (
@@ -250,15 +251,15 @@ export function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-start gap-3 rounded-md bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col items-start gap-3 rounded-2xl bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="font-semibold">No active requests</h3>
+                <h3 className="font-semibold">Немає активних запитів</h3>
                 <p className="mt-1 text-sm text-muted">
-                  Exchange requests that need attention will appear here.
+                  Запити на обмін, які потребують уваги, з'являться тут.
                 </p>
               </div>
               <Link to="/items">
-                <Button variant="secondary">Browse items</Button>
+                <Button variant="secondary">Переглянути речі</Button>
               </Link>
             </div>
           )}
@@ -289,9 +290,9 @@ function SectionHeader({ title, text }) {
 
 function SummaryCard({ label, value, helper }) {
   return (
-    <article className="rounded-lg border border-line bg-white p-5 shadow-soft">
+    <article className="rounded-2xl border border-line bg-white p-5 shadow-soft transition duration-200 hover:-translate-y-1 hover:shadow-md">
       <p className="text-sm font-medium text-muted">{label}</p>
-      <p className="mt-2 text-3xl font-semibold">{value}</p>
+      <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
       {helper ? <p className="mt-1 text-sm font-medium text-muted">{helper}</p> : null}
     </article>
   );
@@ -299,13 +300,13 @@ function SummaryCard({ label, value, helper }) {
 
 function RecommendationEmptyState() {
   return (
-    <div className="rounded-lg border border-line bg-white p-6 text-center shadow-soft">
-      <h3 className="text-lg font-semibold">No smart matches yet</h3>
+    <div className="rounded-2xl border border-line bg-white p-6 text-center shadow-soft">
+      <h3 className="text-lg font-semibold text-gray-900">Поки немає AI-рекомендацій</h3>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-        Add more available items or update your desired exchange preferences.
+        Додайте більше доступних речей або оновіть побажання до обміну.
       </p>
       <Link to="/items/new" className="mt-4 inline-block">
-        <Button>Add item</Button>
+        <Button>Додати річ</Button>
       </Link>
     </div>
   );
@@ -315,15 +316,15 @@ function RequestPreview({ request, currentUserId, offeredItem, requestedItem }) 
   const currentOffer = request.latest_offer || request;
   const direction =
     request.receiver_id === currentUserId
-      ? "Incoming request"
+      ? "Вхідний запит"
       : request.sender_id === currentUserId
-        ? "Outgoing request"
-        : "Active request";
-  const offeredTitle = offeredItem?.title || `Item #${request.offered_item_id}`;
-  const requestedTitle = requestedItem?.title || `Item #${request.requested_item_id}`;
+        ? "Вихідний запит"
+        : "Активний запит";
+  const offeredTitle = offeredItem?.title || `Річ #${request.offered_item_id}`;
+  const requestedTitle = requestedItem?.title || `Річ #${request.requested_item_id}`;
 
   return (
-    <article className="rounded-md border border-line bg-surface p-4">
+    <article className="rounded-2xl border border-line bg-surface p-4 transition duration-200 hover:-translate-y-1 hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-semibold">{direction}</h3>
@@ -332,18 +333,18 @@ function RequestPreview({ request, currentUserId, offeredItem, requestedItem }) 
           </p>
         </div>
         <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-brand">
-          {request.status}
+          {statusLabel(request.status)}
         </span>
       </div>
 
       <div className="mt-4 space-y-2">
         <RequestItemMini
-          label="Offered"
+          label="Пропонується"
           item={offeredItem}
           fallbackId={request.offered_item_id}
         />
         <RequestItemMini
-          label="Requested"
+          label="Запитується"
           item={requestedItem}
           fallbackId={request.requested_item_id}
         />
@@ -357,7 +358,7 @@ function RequestPreview({ request, currentUserId, offeredItem, requestedItem }) 
       </p>
 
       <Link to="/exchange-requests" className="mt-4 inline-block">
-        <Button variant="secondary">View request</Button>
+        <Button variant="secondary">Переглянути запит</Button>
       </Link>
     </article>
   );
@@ -365,37 +366,37 @@ function RequestPreview({ request, currentUserId, offeredItem, requestedItem }) 
 
 function qualityLabel(score) {
   const numericScore = Number(score || 0);
-  if (numericScore >= 0.75) return "Excellent match";
-  if (numericScore >= 0.55) return "Good match";
-  if (numericScore >= 0.35) return "Possible match";
-  return "Low relevance";
+  if (numericScore >= 0.75) return "Відмінний збіг";
+  if (numericScore >= 0.55) return "Хороший збіг";
+  if (numericScore >= 0.35) return "Можливий збіг";
+  return "Низька релевантність";
 }
 
 function RequestItemMini({ label, item, fallbackId }) {
   const image = resolveMediaUrl(item?.images?.[0]?.image_url);
 
   return (
-    <div className="flex gap-3 rounded-md bg-white p-2">
-      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-slate-100">
+    <div className="flex gap-3 rounded-xl bg-white p-2">
+      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
         {image ? (
-          <img src={image} alt={item?.title || "Item"} className="h-full w-full object-cover" />
+          <img src={image} alt={item?.title || "Річ"} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center px-1 text-center text-[10px] text-muted">
-            No image
+            Без фото
           </div>
         )}
       </div>
       <div className="min-w-0">
         <p className="text-[11px] font-semibold uppercase text-muted">{label}</p>
         <h4 className="truncate text-sm font-semibold">
-          {item?.title || `Item #${fallbackId}`}
+          {item?.title || `Річ #${fallbackId}`}
         </h4>
         {item ? (
           <p className="truncate text-xs text-muted">
-            {item.category} - {item.condition} - {item.city}
+            {categoryLabel(item.category)} - {conditionLabel(item.condition)} - {item.city}
           </p>
         ) : (
-          <p className="text-xs text-muted">Details unavailable</p>
+          <p className="text-xs text-muted">Деталі недоступні</p>
         )}
       </div>
     </div>
